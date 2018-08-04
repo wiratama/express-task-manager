@@ -1,0 +1,38 @@
+{
+  "name": "express-task-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wiratama/express-task-manager.git"
+  },
+  "author": "arya wiratama",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wiratama/express-task-manager/issues"
+  },
+  "homepage": "https://github.com/wiratama/express-task-manager#readme",
+  "dependencies": {
+    "axios": "^0.17",
+    "bulma": "^0.7.1",
+    "dotenv": "^4.0.0",
+    "express": "^4.16.3",
+    "font-awesome": "^4.7.0",
+    "vue": "^2.5.16",
+    "vue-loader": "^15.2.6",
+    "vue-router": "^3.0.1",
+    "vue-template-compiler": "^2.5.16",
+    "vuedraggable": "^2.15.0",
+    "vuex": "^3.0.1"
+  },
+  "devDependencies": {
+    "css-loader": "^1.0.0",
+    "recursive-readdir": "^2.2.1",
+    "webpack": "^4.16.4",
+    "webpack-dev-server": "^3.1.5"
+  }
+}
