@@ -7,6 +7,9 @@ const session = require('express-session')
 const methodOverride = require('method-override')
 const debug = require('debug')('myapp:server');
 const http = require('http')
+const webpack = requiere('webpack')
+const webpackDevMiddleware = requiere('webpack-dev-middleware')
+const webpackHotMiddleware = requiere('webpack-hot-middleware')
 const taskApp = express()
 
 const frontendSiteRouter = require('./modules/site/routes/frontend')
