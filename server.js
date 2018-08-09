@@ -26,6 +26,9 @@ taskApp.use(webpackDevMiddleware(webpackCompiler, {
 
 taskApp.use(webpackHotMiddleware(webpackCompiler));
 
+// view engine setup
+taskApp.set('views', path.join(__dirname, './resources/views'));
+taskApp.set('view engine', 'pug');
 
 // catch 404 and forward to error handler
 taskApp.use(function(req, res, next) {
@@ -39,12 +42,8 @@ taskApp.use(function(err, req, res, next) {
 
 	res.status(err.status || 500);
 	console.log(err);
-	res.render('resources/views/errors/error');
+	res.render(path.join(__dirname, './resources/views/errors/error'));
 });
-
-// view engine setup
-taskApp.set('views', path.join(__dirname, 'resources/views'));
-taskApp.set('view engine', 'pug');
 
 taskApp.use(logger('dev'));
 taskApp.use(express.json());
