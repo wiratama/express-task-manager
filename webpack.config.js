@@ -19,6 +19,7 @@ module.exports = {
 		path: path.resolve(__dirname, './'+_publicAssets),
 		filename: isProduction() ? 'js/[name].[hash].js' : 'js/[name].js',
 		chunkFilename: isProduction() ? 'js/[name].[hash].js' : 'js/[name].js',
+		publicPath: path.resolve(__dirname, './'+_publicAssets)
 	},
 	resolve: {
 		modules: [
