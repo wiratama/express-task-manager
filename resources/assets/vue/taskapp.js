@@ -5,7 +5,7 @@ import router from './taskvue/router/router.js';
 import '../css/taskapp/taskapp';
 
 document.addEventListener('DOMContentLoaded', () => {
-	const veTaskApp = new Vue({
+	const vueTaskApp = new Vue({
 	  el: '#task-app',
 	  render: h => h(App),
 	  router
