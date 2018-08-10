@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser')
 const logger = require('morgan')
 const session = require('express-session')
 const methodOverride = require('method-override')
-const debug = require('debug')('myapp:server');
+const debug = require('debug')('taskApp:server');
 const http = require('http')
 const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
@@ -29,6 +29,9 @@ taskApp.use(webpackHotMiddleware(webpackCompiler));
 // view engine setup
 taskApp.set('views', path.join(__dirname, './resources/views'));
 taskApp.set('view engine', 'pug');
+
+// load controllers
+require('./core/boot')(taskApp, { verbose: !module.parent });
 
 // catch 404 and forward to error handler
 taskApp.use(function(req, res, next) {
