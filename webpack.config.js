@@ -2,6 +2,8 @@ const { VueLoaderPlugin } = require('vue-loader')
 const path = require('path')
 const webpack = require('webpack')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
+const uglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const optimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 
 const _clientAssets = 'resources/assets'
 const _publicAssets = 'public/assets'
@@ -28,6 +30,24 @@ module.exports = {
 		],
 		extensions: ['.js', '.sass', '.scss', '.vue'],
 	},
+	optimization: {
+		splitChunks: {
+			name: 'vendor'
+		},
+		minimizer: [
+            new uglifyJsPlugin({
+                cache: false,
+                parallel: true,
+                sourceMap: false,
+                uglifyOptions: {
+                    output: {
+                        comments: false
+                    }
+                },
+            }),
+            new optimizeCSSAssetsPlugin({})
+        ],
+	},
 	module: {
 		rules: [
 			{
@@ -53,40 +73,42 @@ module.exports = {
 			{
 				test: /\.(sass|scss)$/,
 				use: [
-                    miniCssExtractPlugin.loader,
-                    {
-                    	loader: 'css-loader?minimize',
-                    	options: {
-                    		url: false,
-                    		sourceMap: true
-                    	}
-                    },
-                    {
-                    	loader: 'sass-loader?minimize',
-                    	options: {
-                    		sourceMap: true
-                    	}
-                    }
-                ],
+					miniCssExtractPlugin.loader,
+					{
+						loader: 'css-loader?minimize',
+						options: {
+							url: false,
+							sourceMap: true,
+							publicPath: (path) => '../${path}',
+						}
+					},
+					{
+						loader: 'sass-loader?minimize',
+						options: {
+							sourceMap: true,
+							publicPath: (path) => '../${path}',
+						}
+					}
+				],
 			},
 			{
 				test: /\.css$/,
 				use: [
-                    miniCssExtractPlugin.loader,
-                    {
-                    	loader: 'css-loader?minimize',
-                    	options: {
-                    		url: false,
-                    		sourceMap: true
-                    	}
-                    },
-                    {
-                    	loader: 'sass-loader',
-                    	options: {
-                    		sourceMap: true
-                    	}
-                    }
-                ],
+					miniCssExtractPlugin.loader,
+					{
+						loader: 'css-loader?minimize',
+						options: {
+							url: false,
+							sourceMap: true
+						}
+					},
+					{
+						loader: 'sass-loader',
+						options: {
+							sourceMap: true
+						}
+					}
+				],
 			},
 			{
 				test: /\.(png|jpg|jpeg|gif|svg)$/,
@@ -117,10 +139,10 @@ module.exports = {
 	plugins: [
 		new VueLoaderPlugin(),
 		new miniCssExtractPlugin({
-		  filename: isProduction() ? _clientAssets+'/css/[name].[contenthash].css' : _clientAssets+'/css/[name].css',
+			filename: isProduction() ? '/css/[name].[contenthash].css' : '/css/[name].css',
 		}),
 		new webpack.ProvidePlugin({
-		  Vue: ['vue', 'default'],
+			Vue: ['vue', 'default'],
 		}),
 	],
 	devServer: {
@@ -128,4 +150,16 @@ module.exports = {
 		historyApiFallback: true,
 		noInfo: true,
 	},
+}
+
+if (isProduction()) {
+	module.exports.devtool = '#source-map'
+	module.exports.plugins = (module.exports.plugins || []).concat([
+		new webpack.DefinePlugin({
+			'process.env': {
+				NODE_ENV: '"production"',
+			},
+		}),
+		new webpack.optimize.OccurrenceOrderPlugin(),
+	])
 }

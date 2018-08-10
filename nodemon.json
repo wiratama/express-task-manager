@@ -4,7 +4,13 @@
     "events": {
         "restart": "osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
     },
-    "watch": ["modules/","routes/","resources/"],
+    "watch": [
+        "modules/",
+        "routes/",
+        "resources/",
+        "./server.js",
+        "./webpack.config.js"
+    ],
     "env": {
         "NODE_ENV": "development"
     },
