@@ -7,7 +7,7 @@ module.exports = function(parent, options){
 	const verbose = options.verbose
 
 	let listDirectory = scanDirectory(modulesDir)
-	console.log(listDirectory)
+	checkController(listDirectory)
 	
 	// fs.readdirSync(modulesDir).forEach(function(name){
 	//   var file = path.join(dir, name)
@@ -98,4 +98,13 @@ function scanDirectory(directory, filelist = []) {
 	})
 	
 	return filelist
+}
+
+function checkController(data) {
+	for (dataKey in data) {
+		// console.log(dataKey)
+		data[dataKey].map(function(item) {
+			// console.log(item)
+		})
+	}
 }
