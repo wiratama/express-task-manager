@@ -7,6 +7,7 @@ module.exports = function(parent, options){
 	const verbose = options.verbose
 
 	let listDirectory = scanDirectory(modulesDir)
+	console.log(listDirectory)
 	
 	// fs.readdirSync(modulesDir).forEach(function(name){
 	//   var file = path.join(dir, name)
@@ -79,22 +80,22 @@ module.exports = function(parent, options){
 	// });
 }
 
-function scanDirectory(directory) {
-	fs.readdirSync(directory).forEach(function(dirName){
+// recursive scan directory
+function scanDirectory(directory, filelist = []) {
+	fs.readdirSync(directory).forEach(function(dirName, dirKey){
 		let file = path.join(directory, dirName)
 
 		if (!fs.statSync(file).isDirectory()) {
-			// verbose && console.log('\n   %s:', dirName)
-			let obj = require(file)
-			// let name = obj.name || dirName
-			// let prefix = obj.prefix || ''
-			// let app = express()
-			// let handler
-			// let method
-			// let url
-			console.log(obj)
+			if(typeof filelist[directory] === 'undefined' || filelist[directory].length ===0) {
+				filelist[directory] = []
+			}
+
+			filelist[directory].push(dirName)
 		} else {
-			scanDirectory(path.join(directory, dirName))
+			return scanDirectory(path.join(file), filelist)
 		}
+
 	})
+	
+	return filelist
 }
