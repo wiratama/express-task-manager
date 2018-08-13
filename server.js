@@ -11,7 +11,7 @@ const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const webpackConfig = require('./webpack.config.js')
-const taskApp = express()
+const taskApp = module.exports = express()
 
 const frontendSiteRouter = require('./modules/site/routes/frontend')
 taskApp.use('/', frontendSiteRouter)
@@ -22,13 +22,13 @@ const webpackCompiler = webpack(webpackConfig)
 taskApp.use(webpackDevMiddleware(webpackCompiler, {
 	publicPath: webpackConfig.output.publicPath,
 	stats: { colors: true }
-}));
+}))
 
-taskApp.use(webpackHotMiddleware(webpackCompiler));
+taskApp.use(webpackHotMiddleware(webpackCompiler))
 
 // view engine setup
-taskApp.set('views', path.join(__dirname, './resources/views'));
-taskApp.set('view engine', 'pug');
+taskApp.set('views', path.join(__dirname, './resources/views'))
+taskApp.set('view engine', 'pug')
 
 // load controllers
 require('./core/boot')(taskApp, { verbose: !module.parent });
