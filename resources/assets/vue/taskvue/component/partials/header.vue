@@ -14,30 +14,27 @@
                 </div>
                 <div id="navbar-menu-hero" class="navbar-menu" :class="{ 'is-active': dataShowNav }">
                     <div class="navbar-end">
-                        <a class="navbar-item" @click="dataActivNav = !dataActivNav" :class="{ 'is-active': dataActivNav }">
-                            Project
-                        </a>
-                        <a class="navbar-item" @click="dataActivNav = !dataActivNav" :class="{ 'is-active': dataActivNav }">
-                            Client
-                        </a>
+                        <router-link :to="{ name: 'admindashboard' }" class="navbar-item"  @click="dataActivNav = !dataActivNav" :class="{ 'is-active': dataActivNav }">
+                            <span>Dashboard</span>
+                        </router-link>
                         <div class="navbar-item has-dropdown is-hoverable">
                             <div class="navbar-link">
-                                More
+                                Project
                             </div>
                             <div id="moreDropdown" class="navbar-dropdown ">
-                                <a class="navbar-item " href="#">
+                                <router-link :to="{ name: 'adminboard' }" class="navbar-item">
                                     <div class="level is-mobile">
                                         <div class="level-left">
                                             <div class="level-item">
                                                 <p>
-                                                    <strong>Extensions</strong>
+                                                    <strong>Board</strong>
                                                     <br>
-                                                    <small>Side projects to enhance Bulma</small>
+                                                    <small>Project board</small>
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+                                </router-link>
                             </div>
                         </div>
                     </div>
