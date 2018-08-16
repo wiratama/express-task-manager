@@ -1,4 +1,4 @@
-const express = require('../')
+const express = require('express')
 const fs = require('fs')
 const path = require('path')
 
@@ -7,72 +7,69 @@ module.exports = function(parent, options){
 	const verbose = options.verbose
 	
 	fs.readdirSync(dir).forEach(function(name){
-		var file = path.join(dir, name)
+		let file = path.join(dir, name)
 		if (!fs.statSync(file).isDirectory()) return;
-		verbose && console.log('\n   %s:', name);
-		var obj = require(file);
-		var name = obj.name || name;
-		var prefix = obj.prefix || '';
-		var taskApp = express();
-		var handler;
-		var method;
-		var url;
+		verbose && console.log('\n   %s:', name)
+		
+		let obj = require(file)
+		name = obj.name || name
+		let prefix = obj.prefix || ''
+		let taskApp = express()
+		let handler
+		let method
+		let url
 
-		// allow specifying the view engine
-		if (obj.engine) taskApp.set('view engine', obj.engine);
-		taskApp.set('views', path.join(__dirname, '..', 'modules', name, 'views'));
+		if (obj.engine) taskApp.set('view engine', obj.engine)
+		taskApp.set('views', path.join(__dirname, '..', 'modules', name, 'views'))
 
-		  // generate routes based
-		  // on the exported methods
-		for (var key in obj) {
-		    // "reserved" exports
+		for (let key in obj) {
 		    if (~['name', 'prefix', 'engine', 'before'].indexOf(key)) continue;
-		    // route exports
 		    switch (key) {
-			    case 'show':
-			        method = 'get';
-			        url = '/' + name + '/:' + name + '_id';
-			        break;
+			    case 'showslug':
+			        method = 'get'
+			        url = '/' + name + '/:' + name
+			        break
 			    case 'list':
-			        method = 'get';
-			        url = '/' + name + 's';
-			        break;
+			    case 'show':
+			        method = 'get'
+			        url = '/' + name + '/:' + name + '_id'
+			        break
+			    case 'list':
+			        method = 'get'
+			        url = '/' + name + 's'
+			        break
 			    case 'edit':
-			        method = 'get';
-			        url = '/' + name + '/:' + name + '_id/edit';
-			        break;
+			        method = 'get'
+			        url = '/' + name + '/:' + name + '_id/edit'
+			        break
 			    case 'update':
-			        method = 'put';
-			        url = '/' + name + '/:' + name + '_id';
-			        break;
+			        method = 'put'
+			        url = '/' + name + '/:' + name + '_id'
+			        break
 			    case 'create':
-			        method = 'post';
-			        url = '/' + name;
-			        break;
+			        method = 'post'
+			        url = '/' + name
+			        break
 			    case 'index':
-			        method = 'get';
-			        url = '/';
-			        break;
+			        method = 'get'
+			        url = '/'
+			        break
 			    default:
-			        /* istanbul ignore next */
-			        throw new Error('unrecognized route: ' + name + '.' + key);
+			        throw new Error('unrecognized route: ' + name + '.' + key)
 		    }
 
-		    // setup
-		    handler = obj[key];
-		    url = prefix + url;
+		    handler = obj[key]
+		    url = prefix + url
 
-		    // before middleware support
 		    if (obj.before) {
-		      taskApp[method](url, obj.before, handler);
-		      verbose && console.log('     %s %s -> before -> %s', method.toUpperCase(), url, key);
+		      taskApp[method](url, obj.before, handler)
+		      verbose && console.log('     %s %s -> before -> %s', method.toUpperCase(), url, key)
 		    } else {
-		      taskApp[method](url, handler);
-		      verbose && console.log('     %s %s -> %s', method.toUpperCase(), url, key);
+		      taskApp[method](url, handler)
+		      verbose && console.log('     %s %s -> %s', method.toUpperCase(), url, key)
 		    }
 		}
 
-		// mount the taskApp
 		parent.use(taskApp);
 	});
 }
