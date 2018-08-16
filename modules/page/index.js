@@ -1,7 +1,8 @@
+const path = require('path')
+
 exports.before = function(req, res, next){
 	let page = req.params.page;
 	if (!page) return next('route')
-	console.log(page)
 	req.page = page
   	next();
 }
