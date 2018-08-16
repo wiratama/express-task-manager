@@ -25,6 +25,7 @@ taskApp.use(webpackHotMiddleware(webpackCompiler))
 // view engine setup
 taskApp.set('view engine', 'pug')
 taskApp.set('views', path.join(__dirname, './resources/views'))
+taskApp.use("/static", express.static(path.join(__dirname, 'public')))
 
 taskApp.response.message = function(msg){
   let sess = this.req.session

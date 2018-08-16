@@ -7,5 +7,5 @@ exports.before = function(req, res, next){
 }
 
 exports.showslug = function(req, res, next){
-	res.render('page', { page: req.page })
+	res.render('page', { page: req.page, title: req.page})
 }
