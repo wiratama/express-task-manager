@@ -9,9 +9,10 @@
     "server:prod": "cross-env NODE_ENV=production nodemon server.js",
     "client:dev": "webpack-dev-server --inline --hot",
     "client:build": "cross-env NODE_ENV=production webpack --progress --hide-modules",
-    "client:pre-build": "webpack --progress --hide-modules",
+    "client:pre-build": "webpack --progress --hide-modules --hot",
     "full:dev": "npm run client:pre-build && cross-env NODE_ENV=development nodemon server.js",
-    "full:prod": "npm run client:pre-build && cross-env NODE_ENV=production nodemon server.js"
+    "full:prod": "npm run client:pre-build && cross-env NODE_ENV=production nodemon server.js",
+    "clean:assets": "rimraf public/assets/css && rimraf public/assets/js"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,10 @@
     "axios": "^0.17",
     "body-parser": "^1.18.3",
     "bulma": "^0.7.1",
+    "bulma-extensions": "^3.0.0",
+    "bulma-quickview": "^2.0.0",
     "cookie-parser": "^1.4.3",
+    "cors": "^2.8.3",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
@@ -36,10 +40,10 @@
     "methods": "~1.1.2",
     "mongoose": "^5.2.6",
     "morgan": "^1.9.0",
-    "pug": "^2.0.3",
-    "cors": "^2.8.3",
     "nodemailer": "4.0.1",
-    "nodemailer-html-to-text": "2.1.0"
+    "nodemailer-html-to-text": "2.1.0",
+    "pug": "^2.0.3",
+    "rimraf": "^2.6.2"
   },
   "devDependencies": {
     "autoprefixer": "7.1.1",
@@ -79,7 +83,7 @@
     "sass-loader": "^6.0.5",
     "style-loader": "^0.18.1",
     "uglifyjs-webpack-plugin": "^1.2.7",
-    "url-loader": "^0.5.8",
+    "url-loader": "^1.1.1",
     "uuid": "^3.0.1",
     "vee-validate": "^2.1.0-beta.7",
     "vue": "^2.5.16",
@@ -89,7 +93,7 @@
     "vue-router": "^3.0.1",
     "vue-style-loader": "^4.0.2",
     "vue-template-compiler": "^2.5.16",
-    "vue-websocket": "0.2.2",
+    "vue-websocket": "^0.2.3",
     "vuedraggable": "^2.15.0",
     "vuex": "^3.0.1",
     "vuex-persistedstate": "^2.4.2",

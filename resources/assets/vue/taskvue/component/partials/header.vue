@@ -35,8 +35,22 @@
                                         </div>
                                     </div>
                                 </router-link>
+                                <router-link :to="{ name: 'adminclient' }" class="navbar-item">
+                                    <div class="level is-mobile">
+                                        <div class="level-left">
+                                            <div class="level-item">
+                                                <p>
+                                                    <strong>Client</strong>
+                                                    <br>
+                                                    <small>Project client</small>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </router-link>
                             </div>
                         </div>
+                        <button class="button is-primary" data-show="quickview" data-target="quickviewDefault">Show quickview</button>
                     </div>
                 </div>
             </div>
@@ -51,15 +65,56 @@
                 </div>
             </div>
         </section>
+
+        <div id="quickviewDefault" class="quickview">
+            <header class="quickview-header">
+                <p class="title">Navigation</p>
+                <span class="delete" data-dismiss="quickview"></span>
+            </header>
+            <div class="quickview-body">
+                <aside class="menu">
+                    <p class="menu-label">
+                        <router-link :to="{ name: 'admindashboard' }" class="navbar-item"  @click="dataActivNav = !dataActivNav" :class="{ 'is-active': dataActivNav }">
+                                    <span>Dashboard</span>
+                                </router-link>
+                    </p>
+                    <p class="menu-label">
+                        Project
+                    </p>
+                    <ul class="menu-list">
+                        <li>
+                            <router-link :to="{ name: 'adminboard' }" class="navbar-item">
+                                <strong>Board</strong>
+                                <br>
+                                <small>Project board</small>
+                            </router-link>
+                        </li>
+                        <li>
+                            <router-link :to="{ name: 'adminclient' }" class="navbar-item">
+                                <strong>Client</strong>
+                                <br>
+                                <small>Project client</small>
+                            </router-link>
+                        </li>
+                    </ul>
+                </aside>
+            </div>
+        </div>
     </div>
 </template>
 <script>
+import bulmaQuickview from 'bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js'
+
 export default {
     data () {
         return {
             dataShowNav: false,
-            dataActivNav: false
+            dataActivNav: false,
+            quickviews : []
         }
-    }   
+    },
+    mounted: function() {
+            this.quickviews = bulmaQuickview.attach()
+    },
 }
 </script>

@@ -1,4 +1,706 @@
 /******/ (function(modules) { // webpackBootstrap
+/******/ 	function hotDisposeChunk(chunkId) {
+/******/ 		delete installedChunks[chunkId];
+/******/ 	}
+/******/ 	var parentHotUpdateCallback = window["webpackHotUpdate"];
+/******/ 	window["webpackHotUpdate"] = // eslint-disable-next-line no-unused-vars
+/******/ 	function webpackHotUpdateCallback(chunkId, moreModules) {
+/******/ 		hotAddUpdateChunk(chunkId, moreModules);
+/******/ 		if (parentHotUpdateCallback) parentHotUpdateCallback(chunkId, moreModules);
+/******/ 	} ;
+/******/
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	function hotDownloadUpdateChunk(chunkId) {
+/******/ 		var head = document.getElementsByTagName("head")[0];
+/******/ 		var script = document.createElement("script");
+/******/ 		script.charset = "utf-8";
+/******/ 		script.src = __webpack_require__.p + "" + chunkId + "." + hotCurrentHash + ".hot-update.js";
+/******/ 		;
+/******/ 		head.appendChild(script);
+/******/ 	}
+/******/
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	function hotDownloadManifest(requestTimeout) {
+/******/ 		requestTimeout = requestTimeout || 10000;
+/******/ 		return new Promise(function(resolve, reject) {
+/******/ 			if (typeof XMLHttpRequest === "undefined") {
+/******/ 				return reject(new Error("No browser support"));
+/******/ 			}
+/******/ 			try {
+/******/ 				var request = new XMLHttpRequest();
+/******/ 				var requestPath = __webpack_require__.p + "" + hotCurrentHash + ".hot-update.json";
+/******/ 				request.open("GET", requestPath, true);
+/******/ 				request.timeout = requestTimeout;
+/******/ 				request.send(null);
+/******/ 			} catch (err) {
+/******/ 				return reject(err);
+/******/ 			}
+/******/ 			request.onreadystatechange = function() {
+/******/ 				if (request.readyState !== 4) return;
+/******/ 				if (request.status === 0) {
+/******/ 					// timeout
+/******/ 					reject(
+/******/ 						new Error("Manifest request to " + requestPath + " timed out.")
+/******/ 					);
+/******/ 				} else if (request.status === 404) {
+/******/ 					// no update available
+/******/ 					resolve();
+/******/ 				} else if (request.status !== 200 && request.status !== 304) {
+/******/ 					// other failure
+/******/ 					reject(new Error("Manifest request to " + requestPath + " failed."));
+/******/ 				} else {
+/******/ 					// success
+/******/ 					try {
+/******/ 						var update = JSON.parse(request.responseText);
+/******/ 					} catch (e) {
+/******/ 						reject(e);
+/******/ 						return;
+/******/ 					}
+/******/ 					resolve(update);
+/******/ 				}
+/******/ 			};
+/******/ 		});
+/******/ 	}
+/******/
+/******/ 	var hotApplyOnUpdate = true;
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	var hotCurrentHash = "35d493d633da81b43cbf";
+/******/ 	var hotRequestTimeout = 10000;
+/******/ 	var hotCurrentModuleData = {};
+/******/ 	var hotCurrentChildModule;
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	var hotCurrentParents = [];
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	var hotCurrentParentsTemp = [];
+/******/
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	function hotCreateRequire(moduleId) {
+/******/ 		var me = installedModules[moduleId];
+/******/ 		if (!me) return __webpack_require__;
+/******/ 		var fn = function(request) {
+/******/ 			if (me.hot.active) {
+/******/ 				if (installedModules[request]) {
+/******/ 					if (installedModules[request].parents.indexOf(moduleId) === -1) {
+/******/ 						installedModules[request].parents.push(moduleId);
+/******/ 					}
+/******/ 				} else {
+/******/ 					hotCurrentParents = [moduleId];
+/******/ 					hotCurrentChildModule = request;
+/******/ 				}
+/******/ 				if (me.children.indexOf(request) === -1) {
+/******/ 					me.children.push(request);
+/******/ 				}
+/******/ 			} else {
+/******/ 				console.warn(
+/******/ 					"[HMR] unexpected require(" +
+/******/ 						request +
+/******/ 						") from disposed module " +
+/******/ 						moduleId
+/******/ 				);
+/******/ 				hotCurrentParents = [];
+/******/ 			}
+/******/ 			return __webpack_require__(request);
+/******/ 		};
+/******/ 		var ObjectFactory = function ObjectFactory(name) {
+/******/ 			return {
+/******/ 				configurable: true,
+/******/ 				enumerable: true,
+/******/ 				get: function() {
+/******/ 					return __webpack_require__[name];
+/******/ 				},
+/******/ 				set: function(value) {
+/******/ 					__webpack_require__[name] = value;
+/******/ 				}
+/******/ 			};
+/******/ 		};
+/******/ 		for (var name in __webpack_require__) {
+/******/ 			if (
+/******/ 				Object.prototype.hasOwnProperty.call(__webpack_require__, name) &&
+/******/ 				name !== "e" &&
+/******/ 				name !== "t"
+/******/ 			) {
+/******/ 				Object.defineProperty(fn, name, ObjectFactory(name));
+/******/ 			}
+/******/ 		}
+/******/ 		fn.e = function(chunkId) {
+/******/ 			if (hotStatus === "ready") hotSetStatus("prepare");
+/******/ 			hotChunksLoading++;
+/******/ 			return __webpack_require__.e(chunkId).then(finishChunkLoading, function(err) {
+/******/ 				finishChunkLoading();
+/******/ 				throw err;
+/******/ 			});
+/******/
+/******/ 			function finishChunkLoading() {
+/******/ 				hotChunksLoading--;
+/******/ 				if (hotStatus === "prepare") {
+/******/ 					if (!hotWaitingFilesMap[chunkId]) {
+/******/ 						hotEnsureUpdateChunk(chunkId);
+/******/ 					}
+/******/ 					if (hotChunksLoading === 0 && hotWaitingFiles === 0) {
+/******/ 						hotUpdateDownloaded();
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 		fn.t = function(value, mode) {
+/******/ 			if (mode & 1) value = fn(value);
+/******/ 			return __webpack_require__.t(value, mode & ~1);
+/******/ 		};
+/******/ 		return fn;
+/******/ 	}
+/******/
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	function hotCreateModule(moduleId) {
+/******/ 		var hot = {
+/******/ 			// private stuff
+/******/ 			_acceptedDependencies: {},
+/******/ 			_declinedDependencies: {},
+/******/ 			_selfAccepted: false,
+/******/ 			_selfDeclined: false,
+/******/ 			_disposeHandlers: [],
+/******/ 			_main: hotCurrentChildModule !== moduleId,
+/******/
+/******/ 			// Module API
+/******/ 			active: true,
+/******/ 			accept: function(dep, callback) {
+/******/ 				if (typeof dep === "undefined") hot._selfAccepted = true;
+/******/ 				else if (typeof dep === "function") hot._selfAccepted = dep;
+/******/ 				else if (typeof dep === "object")
+/******/ 					for (var i = 0; i < dep.length; i++)
+/******/ 						hot._acceptedDependencies[dep[i]] = callback || function() {};
+/******/ 				else hot._acceptedDependencies[dep] = callback || function() {};
+/******/ 			},
+/******/ 			decline: function(dep) {
+/******/ 				if (typeof dep === "undefined") hot._selfDeclined = true;
+/******/ 				else if (typeof dep === "object")
+/******/ 					for (var i = 0; i < dep.length; i++)
+/******/ 						hot._declinedDependencies[dep[i]] = true;
+/******/ 				else hot._declinedDependencies[dep] = true;
+/******/ 			},
+/******/ 			dispose: function(callback) {
+/******/ 				hot._disposeHandlers.push(callback);
+/******/ 			},
+/******/ 			addDisposeHandler: function(callback) {
+/******/ 				hot._disposeHandlers.push(callback);
+/******/ 			},
+/******/ 			removeDisposeHandler: function(callback) {
+/******/ 				var idx = hot._disposeHandlers.indexOf(callback);
+/******/ 				if (idx >= 0) hot._disposeHandlers.splice(idx, 1);
+/******/ 			},
+/******/
+/******/ 			// Management API
+/******/ 			check: hotCheck,
+/******/ 			apply: hotApply,
+/******/ 			status: function(l) {
+/******/ 				if (!l) return hotStatus;
+/******/ 				hotStatusHandlers.push(l);
+/******/ 			},
+/******/ 			addStatusHandler: function(l) {
+/******/ 				hotStatusHandlers.push(l);
+/******/ 			},
+/******/ 			removeStatusHandler: function(l) {
+/******/ 				var idx = hotStatusHandlers.indexOf(l);
+/******/ 				if (idx >= 0) hotStatusHandlers.splice(idx, 1);
+/******/ 			},
+/******/
+/******/ 			//inherit from previous dispose call
+/******/ 			data: hotCurrentModuleData[moduleId]
+/******/ 		};
+/******/ 		hotCurrentChildModule = undefined;
+/******/ 		return hot;
+/******/ 	}
+/******/
+/******/ 	var hotStatusHandlers = [];
+/******/ 	var hotStatus = "idle";
+/******/
+/******/ 	function hotSetStatus(newStatus) {
+/******/ 		hotStatus = newStatus;
+/******/ 		for (var i = 0; i < hotStatusHandlers.length; i++)
+/******/ 			hotStatusHandlers[i].call(null, newStatus);
+/******/ 	}
+/******/
+/******/ 	// while downloading
+/******/ 	var hotWaitingFiles = 0;
+/******/ 	var hotChunksLoading = 0;
+/******/ 	var hotWaitingFilesMap = {};
+/******/ 	var hotRequestedFilesMap = {};
+/******/ 	var hotAvailableFilesMap = {};
+/******/ 	var hotDeferred;
+/******/
+/******/ 	// The update info
+/******/ 	var hotUpdate, hotUpdateNewHash;
+/******/
+/******/ 	function toModuleId(id) {
+/******/ 		var isNumber = +id + "" === id;
+/******/ 		return isNumber ? +id : id;
+/******/ 	}
+/******/
+/******/ 	function hotCheck(apply) {
+/******/ 		if (hotStatus !== "idle") {
+/******/ 			throw new Error("check() is only allowed in idle status");
+/******/ 		}
+/******/ 		hotApplyOnUpdate = apply;
+/******/ 		hotSetStatus("check");
+/******/ 		return hotDownloadManifest(hotRequestTimeout).then(function(update) {
+/******/ 			if (!update) {
+/******/ 				hotSetStatus("idle");
+/******/ 				return null;
+/******/ 			}
+/******/ 			hotRequestedFilesMap = {};
+/******/ 			hotWaitingFilesMap = {};
+/******/ 			hotAvailableFilesMap = update.c;
+/******/ 			hotUpdateNewHash = update.h;
+/******/
+/******/ 			hotSetStatus("prepare");
+/******/ 			var promise = new Promise(function(resolve, reject) {
+/******/ 				hotDeferred = {
+/******/ 					resolve: resolve,
+/******/ 					reject: reject
+/******/ 				};
+/******/ 			});
+/******/ 			hotUpdate = {};
+/******/ 			var chunkId = "app";
+/******/ 			// eslint-disable-next-line no-lone-blocks
+/******/ 			{
+/******/ 				/*globals chunkId */
+/******/ 				hotEnsureUpdateChunk(chunkId);
+/******/ 			}
+/******/ 			if (
+/******/ 				hotStatus === "prepare" &&
+/******/ 				hotChunksLoading === 0 &&
+/******/ 				hotWaitingFiles === 0
+/******/ 			) {
+/******/ 				hotUpdateDownloaded();
+/******/ 			}
+/******/ 			return promise;
+/******/ 		});
+/******/ 	}
+/******/
+/******/ 	// eslint-disable-next-line no-unused-vars
+/******/ 	function hotAddUpdateChunk(chunkId, moreModules) {
+/******/ 		if (!hotAvailableFilesMap[chunkId] || !hotRequestedFilesMap[chunkId])
+/******/ 			return;
+/******/ 		hotRequestedFilesMap[chunkId] = false;
+/******/ 		for (var moduleId in moreModules) {
+/******/ 			if (Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+/******/ 				hotUpdate[moduleId] = moreModules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if (--hotWaitingFiles === 0 && hotChunksLoading === 0) {
+/******/ 			hotUpdateDownloaded();
+/******/ 		}
+/******/ 	}
+/******/
+/******/ 	function hotEnsureUpdateChunk(chunkId) {
+/******/ 		if (!hotAvailableFilesMap[chunkId]) {
+/******/ 			hotWaitingFilesMap[chunkId] = true;
+/******/ 		} else {
+/******/ 			hotRequestedFilesMap[chunkId] = true;
+/******/ 			hotWaitingFiles++;
+/******/ 			hotDownloadUpdateChunk(chunkId);
+/******/ 		}
+/******/ 	}
+/******/
+/******/ 	function hotUpdateDownloaded() {
+/******/ 		hotSetStatus("ready");
+/******/ 		var deferred = hotDeferred;
+/******/ 		hotDeferred = null;
+/******/ 		if (!deferred) return;
+/******/ 		if (hotApplyOnUpdate) {
+/******/ 			// Wrap deferred object in Promise to mark it as a well-handled Promise to
+/******/ 			// avoid triggering uncaught exception warning in Chrome.
+/******/ 			// See https://bugs.chromium.org/p/chromium/issues/detail?id=465666
+/******/ 			Promise.resolve()
+/******/ 				.then(function() {
+/******/ 					return hotApply(hotApplyOnUpdate);
+/******/ 				})
+/******/ 				.then(
+/******/ 					function(result) {
+/******/ 						deferred.resolve(result);
+/******/ 					},
+/******/ 					function(err) {
+/******/ 						deferred.reject(err);
+/******/ 					}
+/******/ 				);
+/******/ 		} else {
+/******/ 			var outdatedModules = [];
+/******/ 			for (var id in hotUpdate) {
+/******/ 				if (Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
+/******/ 					outdatedModules.push(toModuleId(id));
+/******/ 				}
+/******/ 			}
+/******/ 			deferred.resolve(outdatedModules);
+/******/ 		}
+/******/ 	}
+/******/
+/******/ 	function hotApply(options) {
+/******/ 		if (hotStatus !== "ready")
+/******/ 			throw new Error("apply() is only allowed in ready status");
+/******/ 		options = options || {};
+/******/
+/******/ 		var cb;
+/******/ 		var i;
+/******/ 		var j;
+/******/ 		var module;
+/******/ 		var moduleId;
+/******/
+/******/ 		function getAffectedStuff(updateModuleId) {
+/******/ 			var outdatedModules = [updateModuleId];
+/******/ 			var outdatedDependencies = {};
+/******/
+/******/ 			var queue = outdatedModules.slice().map(function(id) {
+/******/ 				return {
+/******/ 					chain: [id],
+/******/ 					id: id
+/******/ 				};
+/******/ 			});
+/******/ 			while (queue.length > 0) {
+/******/ 				var queueItem = queue.pop();
+/******/ 				var moduleId = queueItem.id;
+/******/ 				var chain = queueItem.chain;
+/******/ 				module = installedModules[moduleId];
+/******/ 				if (!module || module.hot._selfAccepted) continue;
+/******/ 				if (module.hot._selfDeclined) {
+/******/ 					return {
+/******/ 						type: "self-declined",
+/******/ 						chain: chain,
+/******/ 						moduleId: moduleId
+/******/ 					};
+/******/ 				}
+/******/ 				if (module.hot._main) {
+/******/ 					return {
+/******/ 						type: "unaccepted",
+/******/ 						chain: chain,
+/******/ 						moduleId: moduleId
+/******/ 					};
+/******/ 				}
+/******/ 				for (var i = 0; i < module.parents.length; i++) {
+/******/ 					var parentId = module.parents[i];
+/******/ 					var parent = installedModules[parentId];
+/******/ 					if (!parent) continue;
+/******/ 					if (parent.hot._declinedDependencies[moduleId]) {
+/******/ 						return {
+/******/ 							type: "declined",
+/******/ 							chain: chain.concat([parentId]),
+/******/ 							moduleId: moduleId,
+/******/ 							parentId: parentId
+/******/ 						};
+/******/ 					}
+/******/ 					if (outdatedModules.indexOf(parentId) !== -1) continue;
+/******/ 					if (parent.hot._acceptedDependencies[moduleId]) {
+/******/ 						if (!outdatedDependencies[parentId])
+/******/ 							outdatedDependencies[parentId] = [];
+/******/ 						addAllToSet(outdatedDependencies[parentId], [moduleId]);
+/******/ 						continue;
+/******/ 					}
+/******/ 					delete outdatedDependencies[parentId];
+/******/ 					outdatedModules.push(parentId);
+/******/ 					queue.push({
+/******/ 						chain: chain.concat([parentId]),
+/******/ 						id: parentId
+/******/ 					});
+/******/ 				}
+/******/ 			}
+/******/
+/******/ 			return {
+/******/ 				type: "accepted",
+/******/ 				moduleId: updateModuleId,
+/******/ 				outdatedModules: outdatedModules,
+/******/ 				outdatedDependencies: outdatedDependencies
+/******/ 			};
+/******/ 		}
+/******/
+/******/ 		function addAllToSet(a, b) {
+/******/ 			for (var i = 0; i < b.length; i++) {
+/******/ 				var item = b[i];
+/******/ 				if (a.indexOf(item) === -1) a.push(item);
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// at begin all updates modules are outdated
+/******/ 		// the "outdated" status can propagate to parents if they don't accept the children
+/******/ 		var outdatedDependencies = {};
+/******/ 		var outdatedModules = [];
+/******/ 		var appliedUpdate = {};
+/******/
+/******/ 		var warnUnexpectedRequire = function warnUnexpectedRequire() {
+/******/ 			console.warn(
+/******/ 				"[HMR] unexpected require(" + result.moduleId + ") to disposed module"
+/******/ 			);
+/******/ 		};
+/******/
+/******/ 		for (var id in hotUpdate) {
+/******/ 			if (Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
+/******/ 				moduleId = toModuleId(id);
+/******/ 				/** @type {TODO} */
+/******/ 				var result;
+/******/ 				if (hotUpdate[id]) {
+/******/ 					result = getAffectedStuff(moduleId);
+/******/ 				} else {
+/******/ 					result = {
+/******/ 						type: "disposed",
+/******/ 						moduleId: id
+/******/ 					};
+/******/ 				}
+/******/ 				/** @type {Error|false} */
+/******/ 				var abortError = false;
+/******/ 				var doApply = false;
+/******/ 				var doDispose = false;
+/******/ 				var chainInfo = "";
+/******/ 				if (result.chain) {
+/******/ 					chainInfo = "\nUpdate propagation: " + result.chain.join(" -> ");
+/******/ 				}
+/******/ 				switch (result.type) {
+/******/ 					case "self-declined":
+/******/ 						if (options.onDeclined) options.onDeclined(result);
+/******/ 						if (!options.ignoreDeclined)
+/******/ 							abortError = new Error(
+/******/ 								"Aborted because of self decline: " +
+/******/ 									result.moduleId +
+/******/ 									chainInfo
+/******/ 							);
+/******/ 						break;
+/******/ 					case "declined":
+/******/ 						if (options.onDeclined) options.onDeclined(result);
+/******/ 						if (!options.ignoreDeclined)
+/******/ 							abortError = new Error(
+/******/ 								"Aborted because of declined dependency: " +
+/******/ 									result.moduleId +
+/******/ 									" in " +
+/******/ 									result.parentId +
+/******/ 									chainInfo
+/******/ 							);
+/******/ 						break;
+/******/ 					case "unaccepted":
+/******/ 						if (options.onUnaccepted) options.onUnaccepted(result);
+/******/ 						if (!options.ignoreUnaccepted)
+/******/ 							abortError = new Error(
+/******/ 								"Aborted because " + moduleId + " is not accepted" + chainInfo
+/******/ 							);
+/******/ 						break;
+/******/ 					case "accepted":
+/******/ 						if (options.onAccepted) options.onAccepted(result);
+/******/ 						doApply = true;
+/******/ 						break;
+/******/ 					case "disposed":
+/******/ 						if (options.onDisposed) options.onDisposed(result);
+/******/ 						doDispose = true;
+/******/ 						break;
+/******/ 					default:
+/******/ 						throw new Error("Unexception type " + result.type);
+/******/ 				}
+/******/ 				if (abortError) {
+/******/ 					hotSetStatus("abort");
+/******/ 					return Promise.reject(abortError);
+/******/ 				}
+/******/ 				if (doApply) {
+/******/ 					appliedUpdate[moduleId] = hotUpdate[moduleId];
+/******/ 					addAllToSet(outdatedModules, result.outdatedModules);
+/******/ 					for (moduleId in result.outdatedDependencies) {
+/******/ 						if (
+/******/ 							Object.prototype.hasOwnProperty.call(
+/******/ 								result.outdatedDependencies,
+/******/ 								moduleId
+/******/ 							)
+/******/ 						) {
+/******/ 							if (!outdatedDependencies[moduleId])
+/******/ 								outdatedDependencies[moduleId] = [];
+/******/ 							addAllToSet(
+/******/ 								outdatedDependencies[moduleId],
+/******/ 								result.outdatedDependencies[moduleId]
+/******/ 							);
+/******/ 						}
+/******/ 					}
+/******/ 				}
+/******/ 				if (doDispose) {
+/******/ 					addAllToSet(outdatedModules, [result.moduleId]);
+/******/ 					appliedUpdate[moduleId] = warnUnexpectedRequire;
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// Store self accepted outdated modules to require them later by the module system
+/******/ 		var outdatedSelfAcceptedModules = [];
+/******/ 		for (i = 0; i < outdatedModules.length; i++) {
+/******/ 			moduleId = outdatedModules[i];
+/******/ 			if (
+/******/ 				installedModules[moduleId] &&
+/******/ 				installedModules[moduleId].hot._selfAccepted
+/******/ 			)
+/******/ 				outdatedSelfAcceptedModules.push({
+/******/ 					module: moduleId,
+/******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
+/******/ 				});
+/******/ 		}
+/******/
+/******/ 		// Now in "dispose" phase
+/******/ 		hotSetStatus("dispose");
+/******/ 		Object.keys(hotAvailableFilesMap).forEach(function(chunkId) {
+/******/ 			if (hotAvailableFilesMap[chunkId] === false) {
+/******/ 				hotDisposeChunk(chunkId);
+/******/ 			}
+/******/ 		});
+/******/
+/******/ 		var idx;
+/******/ 		var queue = outdatedModules.slice();
+/******/ 		while (queue.length > 0) {
+/******/ 			moduleId = queue.pop();
+/******/ 			module = installedModules[moduleId];
+/******/ 			if (!module) continue;
+/******/
+/******/ 			var data = {};
+/******/
+/******/ 			// Call dispose handlers
+/******/ 			var disposeHandlers = module.hot._disposeHandlers;
+/******/ 			for (j = 0; j < disposeHandlers.length; j++) {
+/******/ 				cb = disposeHandlers[j];
+/******/ 				cb(data);
+/******/ 			}
+/******/ 			hotCurrentModuleData[moduleId] = data;
+/******/
+/******/ 			// disable module (this disables requires from this module)
+/******/ 			module.hot.active = false;
+/******/
+/******/ 			// remove module from cache
+/******/ 			delete installedModules[moduleId];
+/******/
+/******/ 			// when disposing there is no need to call dispose handler
+/******/ 			delete outdatedDependencies[moduleId];
+/******/
+/******/ 			// remove "parents" references from all children
+/******/ 			for (j = 0; j < module.children.length; j++) {
+/******/ 				var child = installedModules[module.children[j]];
+/******/ 				if (!child) continue;
+/******/ 				idx = child.parents.indexOf(moduleId);
+/******/ 				if (idx >= 0) {
+/******/ 					child.parents.splice(idx, 1);
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// remove outdated dependency from module children
+/******/ 		var dependency;
+/******/ 		var moduleOutdatedDependencies;
+/******/ 		for (moduleId in outdatedDependencies) {
+/******/ 			if (
+/******/ 				Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)
+/******/ 			) {
+/******/ 				module = installedModules[moduleId];
+/******/ 				if (module) {
+/******/ 					moduleOutdatedDependencies = outdatedDependencies[moduleId];
+/******/ 					for (j = 0; j < moduleOutdatedDependencies.length; j++) {
+/******/ 						dependency = moduleOutdatedDependencies[j];
+/******/ 						idx = module.children.indexOf(dependency);
+/******/ 						if (idx >= 0) module.children.splice(idx, 1);
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// Not in "apply" phase
+/******/ 		hotSetStatus("apply");
+/******/
+/******/ 		hotCurrentHash = hotUpdateNewHash;
+/******/
+/******/ 		// insert new code
+/******/ 		for (moduleId in appliedUpdate) {
+/******/ 			if (Object.prototype.hasOwnProperty.call(appliedUpdate, moduleId)) {
+/******/ 				modules[moduleId] = appliedUpdate[moduleId];
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// call accept handlers
+/******/ 		var error = null;
+/******/ 		for (moduleId in outdatedDependencies) {
+/******/ 			if (
+/******/ 				Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)
+/******/ 			) {
+/******/ 				module = installedModules[moduleId];
+/******/ 				if (module) {
+/******/ 					moduleOutdatedDependencies = outdatedDependencies[moduleId];
+/******/ 					var callbacks = [];
+/******/ 					for (i = 0; i < moduleOutdatedDependencies.length; i++) {
+/******/ 						dependency = moduleOutdatedDependencies[i];
+/******/ 						cb = module.hot._acceptedDependencies[dependency];
+/******/ 						if (cb) {
+/******/ 							if (callbacks.indexOf(cb) !== -1) continue;
+/******/ 							callbacks.push(cb);
+/******/ 						}
+/******/ 					}
+/******/ 					for (i = 0; i < callbacks.length; i++) {
+/******/ 						cb = callbacks[i];
+/******/ 						try {
+/******/ 							cb(moduleOutdatedDependencies);
+/******/ 						} catch (err) {
+/******/ 							if (options.onErrored) {
+/******/ 								options.onErrored({
+/******/ 									type: "accept-errored",
+/******/ 									moduleId: moduleId,
+/******/ 									dependencyId: moduleOutdatedDependencies[i],
+/******/ 									error: err
+/******/ 								});
+/******/ 							}
+/******/ 							if (!options.ignoreErrored) {
+/******/ 								if (!error) error = err;
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// Load self accepted modules
+/******/ 		for (i = 0; i < outdatedSelfAcceptedModules.length; i++) {
+/******/ 			var item = outdatedSelfAcceptedModules[i];
+/******/ 			moduleId = item.module;
+/******/ 			hotCurrentParents = [moduleId];
+/******/ 			try {
+/******/ 				__webpack_require__(moduleId);
+/******/ 			} catch (err) {
+/******/ 				if (typeof item.errorHandler === "function") {
+/******/ 					try {
+/******/ 						item.errorHandler(err);
+/******/ 					} catch (err2) {
+/******/ 						if (options.onErrored) {
+/******/ 							options.onErrored({
+/******/ 								type: "self-accept-error-handler-errored",
+/******/ 								moduleId: moduleId,
+/******/ 								error: err2,
+/******/ 								originalError: err
+/******/ 							});
+/******/ 						}
+/******/ 						if (!options.ignoreErrored) {
+/******/ 							if (!error) error = err2;
+/******/ 						}
+/******/ 						if (!error) error = err;
+/******/ 					}
+/******/ 				} else {
+/******/ 					if (options.onErrored) {
+/******/ 						options.onErrored({
+/******/ 							type: "self-accept-errored",
+/******/ 							moduleId: moduleId,
+/******/ 							error: err
+/******/ 						});
+/******/ 					}
+/******/ 					if (!options.ignoreErrored) {
+/******/ 						if (!error) error = err;
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		// handle errors in accept handlers and self accepted module load
+/******/ 		if (error) {
+/******/ 			hotSetStatus("fail");
+/******/ 			return Promise.reject(error);
+/******/ 		}
+/******/
+/******/ 		hotSetStatus("idle");
+/******/ 		return new Promise(function(resolve) {
+/******/ 			resolve(outdatedModules);
+/******/ 		});
+/******/ 	}
+/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -13,11 +715,14 @@
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
-/******/ 			exports: {}
+/******/ 			exports: {},
+/******/ 			hot: hotCreateModule(moduleId),
+/******/ 			parents: (hotCurrentParentsTemp = hotCurrentParents, hotCurrentParents = [], hotCurrentParentsTemp),
+/******/ 			children: []
 /******/ 		};
 /******/
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, hotCreateRequire(moduleId));
 /******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
@@ -79,9 +784,12 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "Y:\\learn\\expressjs\\express-task-manager\\public\\assets";
 /******/
+/******/ 	// __webpack_hash__
+/******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
+/******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./resources/assets/vue/taskapp.js");
+/******/ 	return hotCreateRequire("./resources/assets/vue/taskapp.js")(__webpack_require__.s = "./resources/assets/vue/taskapp.js");
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -441,7 +1149,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n/
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n    data() {\n        return {\n            dataShowNav: false,\n            dataActivNav: false\n        };\n    }\n});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/header.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var bulma_extensions_bulma_quickview_dist_js_bulma_quickview_min_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js */ \"./node_modules/bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js\");\n/* harmony import */ var bulma_extensions_bulma_quickview_dist_js_bulma_quickview_min_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(bulma_extensions_bulma_quickview_dist_js_bulma_quickview_min_js__WEBPACK_IMPORTED_MODULE_0__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n    data() {\n        return {\n            dataShowNav: false,\n            dataActivNav: false,\n            quickviews: []\n        };\n    },\n    mounted: function () {\n        this.quickviews = bulma_extensions_bulma_quickview_dist_js_bulma_quickview_min_js__WEBPACK_IMPORTED_MODULE_0___default.a.attach();\n    }\n});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/header.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -453,7 +1161,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n/
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -466,6 +1174,17 @@ eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n/
 
 "use strict";
 eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _partials_header_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./partials/header.vue */ \"./resources/assets/vue/taskvue/component/partials/header.vue\");\n/* harmony import */ var _partials_sidenav_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./partials/sidenav.vue */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue\");\n/* harmony import */ var _partials_footer_vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./partials/footer.vue */ \"./resources/assets/vue/taskvue/component/partials/footer.vue\");\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n\n\n\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n\tcomponents: {\n\t\t'componentHeader': _partials_header_vue__WEBPACK_IMPORTED_MODULE_0__[\"default\"],\n\t\t'componentSidenav': _partials_sidenav_vue__WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n\t\t'componentFooter': _partials_footer_vue__WEBPACK_IMPORTED_MODULE_2__[\"default\"]\n\t}\n});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
+
+/***/ }),
+
+/***/ "./node_modules/bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js ***!
+  \**************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("!function(e,t){ true?module.exports=t():undefined}(\"undefined\"!=typeof self?self:this,function(){return function(n){var i={};function r(e){if(i[e])return i[e].exports;var t=i[e]={i:e,l:!1,exports:{}};return n[e].call(t.exports,t,t.exports,r),t.l=!0,t.exports}return r.m=n,r.c=i,r.d=function(e,t,n){r.o(e,t)||Object.defineProperty(e,t,{configurable:!1,enumerable:!0,get:n})},r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,\"a\",t),t},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},r.p=\"\",r(r.s=0)}([function(e,t,n){\"use strict\";Object.defineProperty(t,\"__esModule\",{value:!0});var i=n(1),o=n(2),s=Object.assign||function(e){for(var t=1;t<arguments.length;t++){var n=arguments[t];for(var i in n)Object.prototype.hasOwnProperty.call(n,i)&&(e[i]=n[i])}return e},a=function(){function i(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,\"value\"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,t,n){return t&&i(e.prototype,t),n&&i(e,n),e}}();var u=Symbol(\"onQuickviewShowClick\"),l=Symbol(\"onQuickviewDismissClick\"),r=function(e){function r(e){var t=1<arguments.length&&void 0!==arguments[1]?arguments[1]:{};!function(e,t){if(!(e instanceof t))throw new TypeError(\"Cannot call a class as a function\")}(this,r);var n=function(e,t){if(!e)throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\");return!t||\"object\"!=typeof t&&\"function\"!=typeof t?e:t}(this,(r.__proto__||Object.getPrototypeOf(r)).call(this));if(n.element=\"string\"==typeof e?document.querySelector(e):e,!n.element)throw new Error(\"An invalid selector or non-DOM node has been provided.\");return n._clickEvents=[\"click\"],n.options=s({},o.a,t),n[u]=n[u].bind(n),n[l]=n[l].bind(n),n.init(),n}return function(e,t){if(\"function\"!=typeof t&&null!==t)throw new TypeError(\"Super expression must either be null or a function, not \"+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(r,i[\"a\"]),a(r,[{key:\"init\",value:function(){this.quickview=document.getElementById(this.element.dataset.target),this.dismissElements=document.querySelectorAll('[data-dismiss=\"quickview\"]'),this._bindEvents(),this.emit(\"quickview:ready\",{element:this.element,quickview:this.quickview})}},{key:\"_bindEvents\",value:function(){var n=this;this._clickEvents.forEach(function(e){n.element.addEventListener(e,n[u],!1)}),[].forEach.call(this.dismissElements,function(t){n._clickEvents.forEach(function(e){t.addEventListener(e,n[l],!1)})})}},{key:u,value:function(e){this.quickview.classList.add(\"is-active\"),this.emit(\"quickview:show\",{element:this.element,quickview:this.quickview})}},{key:l,value:function(e){this.quickview.classList.remove(\"is-active\"),this.emit(\"quickview:hide\",{element:this.element,quickview:this.quickview})}}],[{key:\"attach\",value:function(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:'[data-show=\"quickview\"]',t=1<arguments.length&&void 0!==arguments[1]?arguments[1]:{},n=new Array,i=document.querySelectorAll(e);return[].forEach.call(i,function(e){setTimeout(function(){n.push(new r(e,t))},100)}),n}}]),r}();t.default=r},function(e,t,n){\"use strict\";var i=function(){function i(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,\"value\"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,t,n){return t&&i(e.prototype,t),n&&i(e,n),e}}();var r=function(){function t(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:[];!function(e,t){if(!(e instanceof t))throw new TypeError(\"Cannot call a class as a function\")}(this,t),this._listeners=new Map(e),this._middlewares=new Map}return i(t,[{key:\"listenerCount\",value:function(e){return this._listeners.has(e)?this._listeners.get(e).length:0}},{key:\"removeListeners\",value:function(){var t=this,e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:null,n=1<arguments.length&&void 0!==arguments[1]&&arguments[1];null!==e?Array.isArray(e)?name.forEach(function(e){return t.removeListeners(e,n)}):(this._listeners.delete(e),n&&this.removeMiddleware(e)):this._listeners=new Map}},{key:\"middleware\",value:function(e,t){var n=this;Array.isArray(e)?name.forEach(function(e){return n.middleware(e,t)}):(Array.isArray(this._middlewares.get(e))||this._middlewares.set(e,[]),this._middlewares.get(e).push(t))}},{key:\"removeMiddleware\",value:function(){var t=this,e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:null;null!==e?Array.isArray(e)?name.forEach(function(e){return t.removeMiddleware(e)}):this._middlewares.delete(e):this._middlewares=new Map}},{key:\"on\",value:function(e,t){var n=this,i=2<arguments.length&&void 0!==arguments[2]&&arguments[2];if(Array.isArray(e))e.forEach(function(e){return n.on(e,t)});else{var r=(e=e.toString()).split(/,|, | /);1<r.length?r.forEach(function(e){return n.on(e,t)}):(Array.isArray(this._listeners.get(e))||this._listeners.set(e,[]),this._listeners.get(e).push({once:i,callback:t}))}}},{key:\"once\",value:function(e,t){this.on(e,t,!0)}},{key:\"emit\",value:function(n,i){var r=this,o=2<arguments.length&&void 0!==arguments[2]&&arguments[2];n=n.toString();var s=this._listeners.get(n),a=null,u=0,l=o;if(Array.isArray(s))for(s.forEach(function(e,t){o||(a=r._middlewares.get(n),Array.isArray(a)?(a.forEach(function(e){e(i,function(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:null;null!==e&&(i=e),u++},n)}),u>=a.length&&(l=!0)):l=!0),l&&(e.once&&(s[t]=null),e.callback(i))});-1!==s.indexOf(null);)s.splice(s.indexOf(null),1)}}]),t}();t.a=r},function(e,t,n){\"use strict\";t.a={}}]).default});\n\n//# sourceURL=webpack:///./node_modules/bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js?");
 
 /***/ }),
 
@@ -510,6 +1229,17 @@ eval("/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, 
 /***/ (function(module, exports, __webpack_require__) {
 
 eval("/* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== \"undefined\" && global) ||\n            (typeof self !== \"undefined\" && self) ||\n            window;\nvar apply = Function.prototype.apply;\n\n// DOM APIs, for completeness\n\nexports.setTimeout = function() {\n  return new Timeout(apply.call(setTimeout, scope, arguments), clearTimeout);\n};\nexports.setInterval = function() {\n  return new Timeout(apply.call(setInterval, scope, arguments), clearInterval);\n};\nexports.clearTimeout =\nexports.clearInterval = function(timeout) {\n  if (timeout) {\n    timeout.close();\n  }\n};\n\nfunction Timeout(id, clearFn) {\n  this._id = id;\n  this._clearFn = clearFn;\n}\nTimeout.prototype.unref = Timeout.prototype.ref = function() {};\nTimeout.prototype.close = function() {\n  this._clearFn.call(scope, this._id);\n};\n\n// Does not start the time, just sets up the members needed.\nexports.enroll = function(item, msecs) {\n  clearTimeout(item._idleTimeoutId);\n  item._idleTimeout = msecs;\n};\n\nexports.unenroll = function(item) {\n  clearTimeout(item._idleTimeoutId);\n  item._idleTimeout = -1;\n};\n\nexports._unrefActive = exports.active = function(item) {\n  clearTimeout(item._idleTimeoutId);\n\n  var msecs = item._idleTimeout;\n  if (msecs >= 0) {\n    item._idleTimeoutId = setTimeout(function onTimeout() {\n      if (item._onTimeout)\n        item._onTimeout();\n    }, msecs);\n  }\n};\n\n// setimmediate attaches itself to the global object\n__webpack_require__(/*! setimmediate */ \"./node_modules/setimmediate/setImmediate.js\");\n// On some exotic environments, it's not clear which object `setimmediate` was\n// able to install onto.  Search each possibility in the same order as the\n// `setimmediate` library.\nexports.setImmediate = (typeof self !== \"undefined\" && self.setImmediate) ||\n                       (typeof global !== \"undefined\" && global.setImmediate) ||\n                       (this && this.setImmediate);\nexports.clearImmediate = (typeof self !== \"undefined\" && self.clearImmediate) ||\n                         (typeof global !== \"undefined\" && global.clearImmediate) ||\n                         (this && this.clearImmediate);\n\n/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ \"./node_modules/webpack/buildin/global.js\")))\n\n//# sourceURL=webpack:///./node_modules/timers-browserify/main.js?");
+
+/***/ }),
+
+/***/ "./node_modules/vue-hot-reload-api/dist/index.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/vue-hot-reload-api/dist/index.js ***!
+  \*******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("var Vue // late bind\nvar version\nvar map = (window.__VUE_HOT_MAP__ = Object.create(null))\nvar installed = false\nvar isBrowserify = false\nvar initHookName = 'beforeCreate'\n\nexports.install = function (vue, browserify) {\n  if (installed) { return }\n  installed = true\n\n  Vue = vue.__esModule ? vue.default : vue\n  version = Vue.version.split('.').map(Number)\n  isBrowserify = browserify\n\n  // compat with < 2.0.0-alpha.7\n  if (Vue.config._lifecycleHooks.indexOf('init') > -1) {\n    initHookName = 'init'\n  }\n\n  exports.compatible = version[0] >= 2\n  if (!exports.compatible) {\n    console.warn(\n      '[HMR] You are using a version of vue-hot-reload-api that is ' +\n        'only compatible with Vue.js core ^2.0.0.'\n    )\n    return\n  }\n}\n\n/**\n * Create a record for a hot module, which keeps track of its constructor\n * and instances\n *\n * @param {String} id\n * @param {Object} options\n */\n\nexports.createRecord = function (id, options) {\n  if(map[id]) { return }\n  \n  var Ctor = null\n  if (typeof options === 'function') {\n    Ctor = options\n    options = Ctor.options\n  }\n  makeOptionsHot(id, options)\n  map[id] = {\n    Ctor: Ctor,\n    options: options,\n    instances: []\n  }\n}\n\n/**\n * Check if module is recorded\n *\n * @param {String} id\n */\n\nexports.isRecorded = function (id) {\n  return typeof map[id] !== 'undefined'\n}\n\n/**\n * Make a Component options object hot.\n *\n * @param {String} id\n * @param {Object} options\n */\n\nfunction makeOptionsHot(id, options) {\n  if (options.functional) {\n    var render = options.render\n    options.render = function (h, ctx) {\n      var instances = map[id].instances\n      if (ctx && instances.indexOf(ctx.parent) < 0) {\n        instances.push(ctx.parent)\n      }\n      return render(h, ctx)\n    }\n  } else {\n    injectHook(options, initHookName, function() {\n      var record = map[id]\n      if (!record.Ctor) {\n        record.Ctor = this.constructor\n      }\n      record.instances.push(this)\n    })\n    injectHook(options, 'beforeDestroy', function() {\n      var instances = map[id].instances\n      instances.splice(instances.indexOf(this), 1)\n    })\n  }\n}\n\n/**\n * Inject a hook to a hot reloadable component so that\n * we can keep track of it.\n *\n * @param {Object} options\n * @param {String} name\n * @param {Function} hook\n */\n\nfunction injectHook(options, name, hook) {\n  var existing = options[name]\n  options[name] = existing\n    ? Array.isArray(existing) ? existing.concat(hook) : [existing, hook]\n    : [hook]\n}\n\nfunction tryWrap(fn) {\n  return function (id, arg) {\n    try {\n      fn(id, arg)\n    } catch (e) {\n      console.error(e)\n      console.warn(\n        'Something went wrong during Vue component hot-reload. Full reload required.'\n      )\n    }\n  }\n}\n\nfunction updateOptions (oldOptions, newOptions) {\n  for (var key in oldOptions) {\n    if (!(key in newOptions)) {\n      delete oldOptions[key]\n    }\n  }\n  for (var key$1 in newOptions) {\n    oldOptions[key$1] = newOptions[key$1]\n  }\n}\n\nexports.rerender = tryWrap(function (id, options) {\n  var record = map[id]\n  if (!options) {\n    record.instances.slice().forEach(function (instance) {\n      instance.$forceUpdate()\n    })\n    return\n  }\n  if (typeof options === 'function') {\n    options = options.options\n  }\n  if (record.Ctor) {\n    record.Ctor.options.render = options.render\n    record.Ctor.options.staticRenderFns = options.staticRenderFns\n    record.instances.slice().forEach(function (instance) {\n      instance.$options.render = options.render\n      instance.$options.staticRenderFns = options.staticRenderFns\n      // reset static trees\n      // pre 2.5, all static trees are cahced together on the instance\n      if (instance._staticTrees) {\n        instance._staticTrees = []\n      }\n      // 2.5.0\n      if (Array.isArray(record.Ctor.options.cached)) {\n        record.Ctor.options.cached = []\n      }\n      // 2.5.3\n      if (Array.isArray(instance.$options.cached)) {\n        instance.$options.cached = []\n      }\n      // post 2.5.4: v-once trees are cached on instance._staticTrees.\n      // Pure static trees are cached on the staticRenderFns array\n      // (both already reset above)\n      instance.$forceUpdate()\n    })\n  } else {\n    // functional or no instance created yet\n    record.options.render = options.render\n    record.options.staticRenderFns = options.staticRenderFns\n\n    // handle functional component re-render\n    if (record.options.functional) {\n      // rerender with full options\n      if (Object.keys(options).length > 2) {\n        updateOptions(record.options, options)\n      } else {\n        // template-only rerender.\n        // need to inject the style injection code for CSS modules\n        // to work properly.\n        var injectStyles = record.options._injectStyles\n        if (injectStyles) {\n          var render = options.render\n          record.options.render = function (h, ctx) {\n            injectStyles.call(ctx)\n            return render(h, ctx)\n          }\n        }\n      }\n      record.options._Ctor = null\n      // 2.5.3\n      if (Array.isArray(record.options.cached)) {\n        record.options.cached = []\n      }\n      record.instances.slice().forEach(function (instance) {\n        instance.$forceUpdate()\n      })\n    }\n  }\n})\n\nexports.reload = tryWrap(function (id, options) {\n  var record = map[id]\n  if (options) {\n    if (typeof options === 'function') {\n      options = options.options\n    }\n    makeOptionsHot(id, options)\n    if (record.Ctor) {\n      if (version[1] < 2) {\n        // preserve pre 2.2 behavior for global mixin handling\n        record.Ctor.extendOptions = options\n      }\n      var newCtor = record.Ctor.super.extend(options)\n      record.Ctor.options = newCtor.options\n      record.Ctor.cid = newCtor.cid\n      record.Ctor.prototype = newCtor.prototype\n      if (newCtor.release) {\n        // temporary global mixin strategy used in < 2.0.0-alpha.6\n        newCtor.release()\n      }\n    } else {\n      updateOptions(record.options, options)\n    }\n  }\n  record.instances.slice().forEach(function (instance) {\n    if (instance.$vnode && instance.$vnode.context) {\n      instance.$vnode.context.$forceUpdate()\n    } else {\n      console.warn(\n        'Root or manually mounted instance modified. Full reload required.'\n      )\n    }\n  })\n})\n\n\n//# sourceURL=webpack:///./node_modules/vue-hot-reload-api/dist/index.js?");
 
 /***/ }),
 
@@ -569,7 +1299,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _c(\"div\", [\n    _c(\"nav\", { staticClass: \"navbar is-success\" }, [\n      _c(\"div\", { staticClass: \"container\" }, [\n        _c(\"div\", { staticClass: \"navbar-brand\" }, [\n          _vm._m(0),\n          _vm._v(\" \"),\n          _c(\n            \"span\",\n            {\n              staticClass: \"navbar-burger burger\",\n              class: { \"is-active\": _vm.dataShowNav },\n              attrs: { \"data-target\": \"navbar-menu-hero\" },\n              on: {\n                click: function($event) {\n                  _vm.dataShowNav = !_vm.dataShowNav\n                }\n              }\n            },\n            [_c(\"span\"), _vm._v(\" \"), _c(\"span\"), _vm._v(\" \"), _c(\"span\")]\n          )\n        ]),\n        _vm._v(\" \"),\n        _c(\n          \"div\",\n          {\n            staticClass: \"navbar-menu\",\n            class: { \"is-active\": _vm.dataShowNav },\n            attrs: { id: \"navbar-menu-hero\" }\n          },\n          [\n            _c(\n              \"div\",\n              { staticClass: \"navbar-end\" },\n              [\n                _c(\n                  \"router-link\",\n                  {\n                    staticClass: \"navbar-item\",\n                    class: { \"is-active\": _vm.dataActivNav },\n                    attrs: { to: { name: \"admindashboard\" } },\n                    on: {\n                      click: function($event) {\n                        _vm.dataActivNav = !_vm.dataActivNav\n                      }\n                    }\n                  },\n                  [_c(\"span\", [_vm._v(\"Dashboard\")])]\n                ),\n                _vm._v(\" \"),\n                _c(\n                  \"div\",\n                  { staticClass: \"navbar-item has-dropdown is-hoverable\" },\n                  [\n                    _c(\"div\", { staticClass: \"navbar-link\" }, [\n                      _vm._v(\n                        \"\\n                            Project\\n                        \"\n                      )\n                    ]),\n                    _vm._v(\" \"),\n                    _c(\n                      \"div\",\n                      {\n                        staticClass: \"navbar-dropdown \",\n                        attrs: { id: \"moreDropdown\" }\n                      },\n                      [\n                        _c(\n                          \"router-link\",\n                          {\n                            staticClass: \"navbar-item\",\n                            attrs: { to: { name: \"adminboard\" } }\n                          },\n                          [\n                            _c(\"div\", { staticClass: \"level is-mobile\" }, [\n                              _c(\"div\", { staticClass: \"level-left\" }, [\n                                _c(\"div\", { staticClass: \"level-item\" }, [\n                                  _c(\"p\", [\n                                    _c(\"strong\", [_vm._v(\"Board\")]),\n                                    _vm._v(\" \"),\n                                    _c(\"br\"),\n                                    _vm._v(\" \"),\n                                    _c(\"small\", [_vm._v(\"Project board\")])\n                                  ])\n                                ])\n                              ])\n                            ])\n                          ]\n                        )\n                      ],\n                      1\n                    )\n                  ]\n                )\n              ],\n              1\n            )\n          ]\n        )\n      ])\n    ]),\n    _vm._v(\" \"),\n    _vm._m(1)\n  ])\n}\nvar staticRenderFns = [\n  function() {\n    var _vm = this\n    var _h = _vm.$createElement\n    var _c = _vm._self._c || _h\n    return _c(\"a\", { staticClass: \"navbar-item\" }, [\n      _c(\"h1\", { staticClass: \"title white-font\" }, [_vm._v(\"Task Manager\")])\n    ])\n  },\n  function() {\n    var _vm = this\n    var _h = _vm.$createElement\n    var _c = _vm._self._c || _h\n    return _c(\"section\", { staticClass: \"hero is-success\" }, [\n      _c(\"div\", { staticClass: \"hero-head\" }),\n      _vm._v(\" \"),\n      _c(\"div\", { staticClass: \"hero-body\" }, [\n        _c(\"div\", { staticClass: \"container\" }, [\n          _c(\"h2\", { staticClass: \"subtitle\" }, [\n            _vm._v(\" It's just trello clone! \")\n          ])\n        ])\n      ])\n    ])\n  }\n]\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/header.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _c(\"div\", [\n    _c(\"nav\", { staticClass: \"navbar is-success\" }, [\n      _c(\"div\", { staticClass: \"container\" }, [\n        _c(\"div\", { staticClass: \"navbar-brand\" }, [\n          _vm._m(0),\n          _vm._v(\" \"),\n          _c(\n            \"span\",\n            {\n              staticClass: \"navbar-burger burger\",\n              class: { \"is-active\": _vm.dataShowNav },\n              attrs: { \"data-target\": \"navbar-menu-hero\" },\n              on: {\n                click: function($event) {\n                  _vm.dataShowNav = !_vm.dataShowNav\n                }\n              }\n            },\n            [_c(\"span\"), _vm._v(\" \"), _c(\"span\"), _vm._v(\" \"), _c(\"span\")]\n          )\n        ]),\n        _vm._v(\" \"),\n        _c(\n          \"div\",\n          {\n            staticClass: \"navbar-menu\",\n            class: { \"is-active\": _vm.dataShowNav },\n            attrs: { id: \"navbar-menu-hero\" }\n          },\n          [\n            _c(\n              \"div\",\n              { staticClass: \"navbar-end\" },\n              [\n                _c(\n                  \"router-link\",\n                  {\n                    staticClass: \"navbar-item\",\n                    class: { \"is-active\": _vm.dataActivNav },\n                    attrs: { to: { name: \"admindashboard\" } },\n                    on: {\n                      click: function($event) {\n                        _vm.dataActivNav = !_vm.dataActivNav\n                      }\n                    }\n                  },\n                  [_c(\"span\", [_vm._v(\"Dashboard\")])]\n                ),\n                _vm._v(\" \"),\n                _c(\n                  \"div\",\n                  { staticClass: \"navbar-item has-dropdown is-hoverable\" },\n                  [\n                    _c(\"div\", { staticClass: \"navbar-link\" }, [\n                      _vm._v(\n                        \"\\n                            Project\\n                        \"\n                      )\n                    ]),\n                    _vm._v(\" \"),\n                    _c(\n                      \"div\",\n                      {\n                        staticClass: \"navbar-dropdown \",\n                        attrs: { id: \"moreDropdown\" }\n                      },\n                      [\n                        _c(\n                          \"router-link\",\n                          {\n                            staticClass: \"navbar-item\",\n                            attrs: { to: { name: \"adminboard\" } }\n                          },\n                          [\n                            _c(\"div\", { staticClass: \"level is-mobile\" }, [\n                              _c(\"div\", { staticClass: \"level-left\" }, [\n                                _c(\"div\", { staticClass: \"level-item\" }, [\n                                  _c(\"p\", [\n                                    _c(\"strong\", [_vm._v(\"Board\")]),\n                                    _vm._v(\" \"),\n                                    _c(\"br\"),\n                                    _vm._v(\" \"),\n                                    _c(\"small\", [_vm._v(\"Project board\")])\n                                  ])\n                                ])\n                              ])\n                            ])\n                          ]\n                        ),\n                        _vm._v(\" \"),\n                        _c(\n                          \"router-link\",\n                          {\n                            staticClass: \"navbar-item\",\n                            attrs: { to: { name: \"adminclient\" } }\n                          },\n                          [\n                            _c(\"div\", { staticClass: \"level is-mobile\" }, [\n                              _c(\"div\", { staticClass: \"level-left\" }, [\n                                _c(\"div\", { staticClass: \"level-item\" }, [\n                                  _c(\"p\", [\n                                    _c(\"strong\", [_vm._v(\"Client\")]),\n                                    _vm._v(\" \"),\n                                    _c(\"br\"),\n                                    _vm._v(\" \"),\n                                    _c(\"small\", [_vm._v(\"Project client\")])\n                                  ])\n                                ])\n                              ])\n                            ])\n                          ]\n                        )\n                      ],\n                      1\n                    )\n                  ]\n                ),\n                _vm._v(\" \"),\n                _c(\n                  \"button\",\n                  {\n                    staticClass: \"button is-primary\",\n                    attrs: {\n                      \"data-show\": \"quickview\",\n                      \"data-target\": \"quickviewDefault\"\n                    }\n                  },\n                  [_vm._v(\"Show quickview\")]\n                )\n              ],\n              1\n            )\n          ]\n        )\n      ])\n    ]),\n    _vm._v(\" \"),\n    _vm._m(1),\n    _vm._v(\" \"),\n    _c(\"div\", { staticClass: \"quickview\", attrs: { id: \"quickviewDefault\" } }, [\n      _vm._m(2),\n      _vm._v(\" \"),\n      _c(\"div\", { staticClass: \"quickview-body\" }, [\n        _c(\"aside\", { staticClass: \"menu\" }, [\n          _c(\n            \"p\",\n            { staticClass: \"menu-label\" },\n            [\n              _c(\n                \"router-link\",\n                {\n                  staticClass: \"navbar-item\",\n                  class: { \"is-active\": _vm.dataActivNav },\n                  attrs: { to: { name: \"admindashboard\" } },\n                  on: {\n                    click: function($event) {\n                      _vm.dataActivNav = !_vm.dataActivNav\n                    }\n                  }\n                },\n                [_c(\"span\", [_vm._v(\"Dashboard\")])]\n              )\n            ],\n            1\n          ),\n          _vm._v(\" \"),\n          _c(\"p\", { staticClass: \"menu-label\" }, [\n            _vm._v(\"\\n                    Project\\n                \")\n          ]),\n          _vm._v(\" \"),\n          _c(\"ul\", { staticClass: \"menu-list\" }, [\n            _c(\n              \"li\",\n              [\n                _c(\n                  \"router-link\",\n                  {\n                    staticClass: \"navbar-item\",\n                    attrs: { to: { name: \"adminboard\" } }\n                  },\n                  [\n                    _c(\"strong\", [_vm._v(\"Board\")]),\n                    _vm._v(\" \"),\n                    _c(\"br\"),\n                    _vm._v(\" \"),\n                    _c(\"small\", [_vm._v(\"Project board\")])\n                  ]\n                )\n              ],\n              1\n            ),\n            _vm._v(\" \"),\n            _c(\n              \"li\",\n              [\n                _c(\n                  \"router-link\",\n                  {\n                    staticClass: \"navbar-item\",\n                    attrs: { to: { name: \"adminclient\" } }\n                  },\n                  [\n                    _c(\"strong\", [_vm._v(\"Client\")]),\n                    _vm._v(\" \"),\n                    _c(\"br\"),\n                    _vm._v(\" \"),\n                    _c(\"small\", [_vm._v(\"Project client\")])\n                  ]\n                )\n              ],\n              1\n            )\n          ])\n        ])\n      ])\n    ])\n  ])\n}\nvar staticRenderFns = [\n  function() {\n    var _vm = this\n    var _h = _vm.$createElement\n    var _c = _vm._self._c || _h\n    return _c(\"a\", { staticClass: \"navbar-item\" }, [\n      _c(\"h1\", { staticClass: \"title white-font\" }, [_vm._v(\"Task Manager\")])\n    ])\n  },\n  function() {\n    var _vm = this\n    var _h = _vm.$createElement\n    var _c = _vm._self._c || _h\n    return _c(\"section\", { staticClass: \"hero is-success\" }, [\n      _c(\"div\", { staticClass: \"hero-head\" }),\n      _vm._v(\" \"),\n      _c(\"div\", { staticClass: \"hero-body\" }, [\n        _c(\"div\", { staticClass: \"container\" }, [\n          _c(\"h2\", { staticClass: \"subtitle\" }, [\n            _vm._v(\" It's just trello clone! \")\n          ])\n        ])\n      ])\n    ])\n  },\n  function() {\n    var _vm = this\n    var _h = _vm.$createElement\n    var _c = _vm._self._c || _h\n    return _c(\"header\", { staticClass: \"quickview-header\" }, [\n      _c(\"p\", { staticClass: \"title\" }, [_vm._v(\"Navigation\")]),\n      _vm._v(\" \"),\n      _c(\"span\", {\n        staticClass: \"delete\",\n        attrs: { \"data-dismiss\": \"quickview\" }\n      })\n    ])\n  }\n]\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/header.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -581,7 +1311,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _vm._m(0)\n}\nvar staticRenderFns = [\n  function() {\n    var _vm = this\n    var _h = _vm.$createElement\n    var _c = _vm._self._c || _h\n    return _c(\"div\", { staticClass: \"column is-2\" }, [\n      _c(\"aside\", { staticClass: \"menu section\" }, [\n        _c(\"ul\", { staticClass: \"menu-list\" }, [\n          _c(\"li\", [\n            _c(\"a\", { attrs: { href: \"#typography\" } }, [\n              _vm._v(\" Typography \")\n            ])\n          ])\n        ])\n      ])\n    ])\n  }\n]\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _c(\"div\", { staticClass: \"column is-2\" }, [\n    _c(\"aside\", { staticClass: \"menu section\" }, [\n      _c(\n        \"p\",\n        { staticClass: \"menu-label\" },\n        [\n          _c(\n            \"router-link\",\n            {\n              staticClass: \"navbar-item\",\n              class: { \"is-active\": _vm.dataActivNav },\n              attrs: { to: { name: \"admindashboard\" } },\n              on: {\n                click: function($event) {\n                  _vm.dataActivNav = !_vm.dataActivNav\n                }\n              }\n            },\n            [_c(\"span\", [_vm._v(\"Dashboard\")])]\n          )\n        ],\n        1\n      ),\n      _vm._v(\" \"),\n      _c(\"p\", { staticClass: \"menu-label\" }, [\n        _vm._v(\"\\n\\t\\t\\t\\tProject\\n\\t\\t\\t\")\n      ]),\n      _vm._v(\" \"),\n      _c(\"ul\", { staticClass: \"menu-list\" }, [\n        _c(\n          \"li\",\n          [\n            _c(\n              \"router-link\",\n              {\n                staticClass: \"navbar-item\",\n                attrs: { to: { name: \"adminboard\" } }\n              },\n              [\n                _c(\"strong\", [_vm._v(\"Board\")]),\n                _vm._v(\" \"),\n                _c(\"br\"),\n                _vm._v(\" \"),\n                _c(\"small\", [_vm._v(\"Project board\")])\n              ]\n            )\n          ],\n          1\n        ),\n        _vm._v(\" \"),\n        _c(\n          \"li\",\n          [\n            _c(\n              \"router-link\",\n              {\n                staticClass: \"navbar-item\",\n                attrs: { to: { name: \"adminclient\" } }\n              },\n              [\n                _c(\"strong\", [_vm._v(\"Client\")]),\n                _vm._v(\" \"),\n                _c(\"br\"),\n                _vm._v(\" \"),\n                _c(\"small\", [_vm._v(\"Project client\")])\n              ]\n            )\n          ],\n          1\n        )\n      ])\n    ])\n  ])\n}\nvar staticRenderFns = []\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -675,7 +1405,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var vue_
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./board.vue?vue&type=template&id=26298bc0& */ \"./resources/assets/vue/taskvue/component/board/board.vue?vue&type=template&id=26298bc0&\");\n/* harmony import */ var _board_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./board.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/board/board.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _board_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\board\\\\board.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/board/board.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./board.vue?vue&type=template&id=26298bc0& */ \"./resources/assets/vue/taskvue/component/board/board.vue?vue&type=template&id=26298bc0&\");\n/* harmony import */ var _board_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./board.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/board/board.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _board_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('26298bc0', component.options)\n    } else {\n      api.reload('26298bc0', component.options)\n    }\n    module.hot.accept(/*! ./board.vue?vue&type=template&id=26298bc0& */ \"./resources/assets/vue/taskvue/component/board/board.vue?vue&type=template&id=26298bc0&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./board.vue?vue&type=template&id=26298bc0& */ \"./resources/assets/vue/taskvue/component/board/board.vue?vue&type=template&id=26298bc0&\");\n(function () {\n      api.rerender('26298bc0', {\n        render: _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _board_vue_vue_type_template_id_26298bc0___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\board\\\\board.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/board/board.vue?");
 
 /***/ }),
 
@@ -711,7 +1441,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./client.vue?vue&type=template&id=0276e272& */ \"./resources/assets/vue/taskvue/component/client/client.vue?vue&type=template&id=0276e272&\");\n/* harmony import */ var _client_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./client.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/client/client.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _client_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\client\\\\client.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/client.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./client.vue?vue&type=template&id=0276e272& */ \"./resources/assets/vue/taskvue/component/client/client.vue?vue&type=template&id=0276e272&\");\n/* harmony import */ var _client_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./client.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/client/client.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _client_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('0276e272', component.options)\n    } else {\n      api.reload('0276e272', component.options)\n    }\n    module.hot.accept(/*! ./client.vue?vue&type=template&id=0276e272& */ \"./resources/assets/vue/taskvue/component/client/client.vue?vue&type=template&id=0276e272&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./client.vue?vue&type=template&id=0276e272& */ \"./resources/assets/vue/taskvue/component/client/client.vue?vue&type=template&id=0276e272&\");\n(function () {\n      api.rerender('0276e272', {\n        render: _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _client_vue_vue_type_template_id_0276e272___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\client\\\\client.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/client.vue?");
 
 /***/ }),
 
@@ -747,7 +1477,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dashboard.vue?vue&type=template&id=3c04037c& */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?vue&type=template&id=3c04037c&\");\n/* harmony import */ var _dashboard_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dashboard.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _dashboard_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\dashboard\\\\dashboard.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dashboard.vue?vue&type=template&id=3c04037c& */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?vue&type=template&id=3c04037c&\");\n/* harmony import */ var _dashboard_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./dashboard.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _dashboard_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('3c04037c', component.options)\n    } else {\n      api.reload('3c04037c', component.options)\n    }\n    module.hot.accept(/*! ./dashboard.vue?vue&type=template&id=3c04037c& */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?vue&type=template&id=3c04037c&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./dashboard.vue?vue&type=template&id=3c04037c& */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?vue&type=template&id=3c04037c&\");\n(function () {\n      api.rerender('3c04037c', {\n        render: _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _dashboard_vue_vue_type_template_id_3c04037c___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\dashboard\\\\dashboard.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/dashboard/dashboard.vue?");
 
 /***/ }),
 
@@ -783,7 +1513,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./footer.vue?vue&type=template&id=5177bfdb& */ \"./resources/assets/vue/taskvue/component/partials/footer.vue?vue&type=template&id=5177bfdb&\");\n/* harmony import */ var _footer_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./footer.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/partials/footer.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _footer_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\partials\\\\footer.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/footer.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./footer.vue?vue&type=template&id=5177bfdb& */ \"./resources/assets/vue/taskvue/component/partials/footer.vue?vue&type=template&id=5177bfdb&\");\n/* harmony import */ var _footer_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./footer.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/partials/footer.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _footer_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('5177bfdb', component.options)\n    } else {\n      api.reload('5177bfdb', component.options)\n    }\n    module.hot.accept(/*! ./footer.vue?vue&type=template&id=5177bfdb& */ \"./resources/assets/vue/taskvue/component/partials/footer.vue?vue&type=template&id=5177bfdb&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./footer.vue?vue&type=template&id=5177bfdb& */ \"./resources/assets/vue/taskvue/component/partials/footer.vue?vue&type=template&id=5177bfdb&\");\n(function () {\n      api.rerender('5177bfdb', {\n        render: _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _footer_vue_vue_type_template_id_5177bfdb___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\partials\\\\footer.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/footer.vue?");
 
 /***/ }),
 
@@ -819,7 +1549,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./header.vue?vue&type=template&id=72aa23cd& */ \"./resources/assets/vue/taskvue/component/partials/header.vue?vue&type=template&id=72aa23cd&\");\n/* harmony import */ var _header_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./header.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/partials/header.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _header_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\partials\\\\header.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/header.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./header.vue?vue&type=template&id=72aa23cd& */ \"./resources/assets/vue/taskvue/component/partials/header.vue?vue&type=template&id=72aa23cd&\");\n/* harmony import */ var _header_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./header.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/partials/header.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _header_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('72aa23cd', component.options)\n    } else {\n      api.reload('72aa23cd', component.options)\n    }\n    module.hot.accept(/*! ./header.vue?vue&type=template&id=72aa23cd& */ \"./resources/assets/vue/taskvue/component/partials/header.vue?vue&type=template&id=72aa23cd&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./header.vue?vue&type=template&id=72aa23cd& */ \"./resources/assets/vue/taskvue/component/partials/header.vue?vue&type=template&id=72aa23cd&\");\n(function () {\n      api.rerender('72aa23cd', {\n        render: _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _header_vue_vue_type_template_id_72aa23cd___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\partials\\\\header.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/header.vue?");
 
 /***/ }),
 
@@ -855,7 +1585,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sidenav.vue?vue&type=template&id=012ddcdc& */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue?vue&type=template&id=012ddcdc&\");\n/* harmony import */ var _sidenav_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sidenav.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _sidenav_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\partials\\\\sidenav.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sidenav.vue?vue&type=template&id=012ddcdc& */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue?vue&type=template&id=012ddcdc&\");\n/* harmony import */ var _sidenav_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./sidenav.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _sidenav_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('012ddcdc', component.options)\n    } else {\n      api.reload('012ddcdc', component.options)\n    }\n    module.hot.accept(/*! ./sidenav.vue?vue&type=template&id=012ddcdc& */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue?vue&type=template&id=012ddcdc&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./sidenav.vue?vue&type=template&id=012ddcdc& */ \"./resources/assets/vue/taskvue/component/partials/sidenav.vue?vue&type=template&id=012ddcdc&\");\n(function () {\n      api.rerender('012ddcdc', {\n        render: _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _sidenav_vue_vue_type_template_id_012ddcdc___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\partials\\\\sidenav.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?");
 
 /***/ }),
 
@@ -891,7 +1621,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rootComponentTaskApp.vue?vue&type=template&id=913c62e4& */ \"./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?vue&type=template&id=913c62e4&\");\n/* harmony import */ var _rootComponentTaskApp_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./rootComponentTaskApp.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _rootComponentTaskApp_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (false) { var api; }\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\rootComponentTaskApp.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rootComponentTaskApp.vue?vue&type=template&id=913c62e4& */ \"./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?vue&type=template&id=913c62e4&\");\n/* harmony import */ var _rootComponentTaskApp_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./rootComponentTaskApp.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _rootComponentTaskApp_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('913c62e4', component.options)\n    } else {\n      api.reload('913c62e4', component.options)\n    }\n    module.hot.accept(/*! ./rootComponentTaskApp.vue?vue&type=template&id=913c62e4& */ \"./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?vue&type=template&id=913c62e4&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./rootComponentTaskApp.vue?vue&type=template&id=913c62e4& */ \"./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?vue&type=template&id=913c62e4&\");\n(function () {\n      api.rerender('913c62e4', {\n        render: _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _rootComponentTaskApp_vue_vue_type_template_id_913c62e4___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources\\\\assets\\\\vue\\\\taskvue\\\\component\\\\rootComponentTaskApp.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/rootComponentTaskApp.vue?");
 
 /***/ }),
 
