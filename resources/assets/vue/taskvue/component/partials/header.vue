@@ -50,7 +50,7 @@
                                 </router-link>
                             </div>
                         </div>
-                        <button class="button is-primary" data-show="quickview" data-target="quickviewDefault">Show quickview</button>
+                        <!-- <button class="button is-primary" data-show="quickview" data-target="quickviewDefault">Show quickview</button> -->
                     </div>
                 </div>
             </div>
@@ -66,7 +66,7 @@
             </div>
         </section>
 
-        <div id="quickviewDefault" class="quickview">
+        <!-- <div id="quickviewDefault" class="quickview">
             <header class="quickview-header">
                 <p class="title">Navigation</p>
                 <span class="delete" data-dismiss="quickview"></span>
@@ -99,22 +99,22 @@
                     </ul>
                 </aside>
             </div>
-        </div>
+        </div> -->
     </div>
 </template>
 <script>
-import bulmaQuickview from 'bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js'
+// import bulmaQuickview from 'bulma-extensions/bulma-quickview/dist/js/bulma-quickview.min.js'
 
 export default {
     data () {
         return {
             dataShowNav: false,
             dataActivNav: false,
-            quickviews : []
+            // quickviews : []
         }
     },
-    mounted: function() {
-            this.quickviews = bulmaQuickview.attach()
-    },
+    // mounted: function() {
+    //         this.quickviews = bulmaQuickview.attach()
+    // },
 }
 </script>

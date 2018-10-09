@@ -4,6 +4,7 @@ const webpack = require('webpack')
 const miniCssExtractPlugin = require('mini-css-extract-plugin')
 const uglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const optimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const webpackShellPlugin = require('webpack-shell-plugin')
 
 const _clientAssets = 'resources/assets'
 const _publicAssets = 'public/assets'
@@ -144,6 +145,10 @@ module.exports = {
 		new webpack.ProvidePlugin({
 			Vue: ['vue', 'default'],
 		}),
+		new webpackShellPlugin({
+			// onBuildStart:['echo "Webpack Start"'],
+			onBuildEnd:['npm run express:dev']
+		})
 	],
 	devServer: {
 		contentBase: path.join(__dirname, _publicAssets),

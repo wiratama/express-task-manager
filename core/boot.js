@@ -55,7 +55,10 @@ module.exports = function(parent, options){
 			        url = '/'
 			        break
 			    default:
-			        throw new Error('unrecognized route: ' + name + '.' + key)
+			    	method = 'get'
+			        url = '/' + name + '/:' + name + '_id'
+			        break
+			        // throw new Error('unrecognized route: ' + name + '.' + key)
 		    }
 
 		    handler = obj[key]
