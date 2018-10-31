@@ -1,8 +1,33 @@
 <template>
-	<h1>Client</h1>
+	<div>
+		<h1>Client</h1>
+		<ul>
+			<li v-for="(client, index) of clients">
+			{{client.nama}}
+			</li>
+		</ul>
+	</div>
 </template>
 <script>
-export default {
+import axios from 'axios'
 
+export default {
+	created () {
+		axios.get(`http://localhost:666/clients`)
+		.then(response => {
+			this.clients = response.data
+			console.log(this.clients)
+		})
+		.catch(e => {
+			this.errors.push(e)
+		})
+	},
+	data () {
+		return {
+			clients: [],
+			errors: []
+		}
+	},
+	
 }
 </script>

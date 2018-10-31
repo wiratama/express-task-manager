@@ -8,10 +8,39 @@ const path = require('path')
 // }
 
 exports.list = function(req, res, next){
-	res.render('list')
+	let dataClient = [
+		{
+			'nama': 'client-1',
+			'phone': '112233'
+		},
+		{
+			'nama': 'client-2',
+			'phone': '112233'
+		},
+		{
+			'nama': 'client-3',
+			'phone': '112233'
+		}
+	]
+	res.json(dataClient)
 }
 
 exports.showslug = function(req, res, next){
 	let client = req.params.client
-	res.render('show', { client: client, title: client})
+	// res.render('show', { client: client, title: client})
+	let dataClient = {
+		'client1':{
+			'nama': 'client-1',
+			'phone': '112233'
+		},
+		'client2':{
+			'nama': 'client-2',
+			'phone': '112233'
+		},
+		'client3':{
+			'nama': 'client-3',
+			'phone': '112233'
+		}
+	}
+	res.json(dataClient[client])
 }

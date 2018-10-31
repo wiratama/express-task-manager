@@ -13,7 +13,7 @@ let router = new VueRouter({
 	routes: [
 		{ path: '/admin/dashboard', component: componentDashboard, name: 'admindashboard' },
 		{ path: '/admin/board', component: componentBoard, name: 'adminboard' },
-		{ path: '/admin/client', component: componentClient, name: 'adminclient' },
+		{ path: '/clients', component: componentClient, name: 'adminclient' },
 	],
 	scrollBehavior (to, from, savedPosition) {
 		return { x: 0, y: 0 }
