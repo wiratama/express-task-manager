@@ -8,10 +8,13 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const debug = require('debug')('taskApp:server')
 const http = require('http')
+const mongoose = require('mongoose')
+const hbs = require('express-handlebars')
 const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 const webpackConfig = require('./webpack.config.js')
+const config = require('./config/config')
 
 const taskApp = module.exports = express()
 
@@ -24,9 +27,15 @@ taskApp.use(webpackDevMiddleware(webpackCompiler, {
 taskApp.use(webpackHotMiddleware(webpackCompiler))
 
 // view engine setup
-taskApp.set('view engine', 'pug')
+taskApp.engine('hbs', hbs({
+  extname: 'hbs',
+  defaultLayout: 'mainlayout',
+  layoutsDir: __dirname + '/resources/views/layouts/',
+  // partialsDir: __dirname + '/resources/views/partials/'
+}));
 taskApp.set('views', path.join(__dirname, './resources/views'))
-taskApp.use("/static", express.static(path.join(__dirname, 'public')))
+taskApp.set('view engine', 'hbs')
+taskApp.use('/static', express.static(path.join(__dirname, 'public')))
 
 taskApp.response.message = function(msg){
   let sess = this.req.session
@@ -87,7 +96,7 @@ taskApp.use(function(err, req, res, next) {
   res.locals.error = req.app.get('env') === 'development' ? err : {}
 
   res.status(err.status || 500)
-  res.render(path.join(__dirname, './resources/views/errors/error'))
+  res.render(path.join(__dirname, './resources/views/errors/error'), {layout: 'errorlayout'})
 })
 
 /* istanbul ignore next */

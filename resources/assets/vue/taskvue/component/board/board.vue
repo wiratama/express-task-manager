@@ -1,5 +1,5 @@
 <template>
-	<h1>Board</h1>
+	<h1>Board Component</h1>
 </template>
 <script>
 export default {

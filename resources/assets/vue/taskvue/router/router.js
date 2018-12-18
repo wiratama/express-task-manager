@@ -11,9 +11,9 @@ import componentClient from '../component/client/client.vue';
 let router = new VueRouter({
 	mode: 'history',
 	routes: [
-		{ path: '/admin/dashboard', component: componentDashboard, name: 'admindashboard' },
-		{ path: '/admin/board', component: componentBoard, name: 'adminboard' },
-		{ path: '/admin/client', component: componentClient, name: 'adminclient' },
+		{ path: '/dashboard', component: componentDashboard, name: 'admindashboard' },
+		{ path: '/board', component: componentBoard, name: 'adminboard' },
+		{ path: '/client', component: componentClient, name: 'adminclient' },
 	],
 	scrollBehavior (to, from, savedPosition) {
 		return { x: 0, y: 0 }
