@@ -23,13 +23,13 @@ module.exports = function(parent, options){
 		taskApp.set('views', path.join(__dirname, '..', 'modules', name, 'views'))
 
 		for (let key in obj) {
-		    if (~['name', 'prefix', 'engine', 'before'].indexOf(key)) continue;
+			if (~['name', 'prefix', 'engine', 'before'].indexOf(key)) continue;
+			console.log(key+' - nama key')
 		    switch (key) {
 			    case 'showslug':
 			        method = 'get'
-			        url = '/' + name + '/:' + name
+			        url = '/' + name + 's/:' + name
 			        break
-			    case 'list':
 			    case 'show':
 			        method = 'get'
 			        url = '/' + name + '/:' + name + '_id'

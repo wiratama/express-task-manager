@@ -30,6 +30,10 @@
 </template>
 <script>
 export default {
-    
+    data () {
+        return {
+            dataActivNav: false,
+        }
+    },
 }
 </script>
