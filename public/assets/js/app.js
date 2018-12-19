@@ -64,7 +64,7 @@
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "bd5f210e6d169812ab64";
+/******/ 	var hotCurrentHash = "bec15f4c6c8ee159581b";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -1113,7 +1113,19 @@ eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n\n/* harmony defa
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/client.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ \"./node_modules/axios/index.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n\tcreated() {\n\t\taxios__WEBPACK_IMPORTED_MODULE_0___default.a.get(`http://localhost:666/api/client`).then(response => {\n\t\t\tthis.clients = response.data;\n\t\t\tconsole.log(this.clients);\n\t\t}).catch(e => {\n\t\t\tthis.errors.push(e);\n\t\t});\n\t},\n\tdata() {\n\t\treturn {\n\t\t\tclients: [],\n\t\t\terrors: []\n\t\t};\n\t}\n\n});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/client.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
+
+/***/ }),
+
+/***/ "./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=script&lang=js&":
+/*!*********************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options!./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=script&lang=js& ***!
+  \*********************************************************************************************************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ \"./node_modules/axios/index.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n\tcreated() {\n\t\taxios__WEBPACK_IMPORTED_MODULE_0___default.a.get(`http://localhost:666/api/client`).then(response => {\n\t\t\tthis.clients = response.data;\n\t\t}).catch(e => {\n\t\t\tthis.errors.push(e);\n\t\t});\n\t},\n\tdata() {\n\t\treturn {\n\t\t\tclients: [],\n\t\t\terrors: []\n\t\t};\n\t}\n\n});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/showclient.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -1161,7 +1173,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n/
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n\n/* harmony default export */ __webpack_exports__[\"default\"] = ({\n    data() {\n        return {\n            dataActivNav: false\n        };\n    }\n});\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/partials/sidenav.vue?./node_modules/babel-loader/lib!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -1252,7 +1264,19 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _c(\"h1\", [_vm._v(\"Client\")])\n}\nvar staticRenderFns = []\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/client.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _c(\"div\", [\n    _c(\"h1\", [_vm._v(\"Client\")]),\n    _vm._v(\" \"),\n    _c(\n      \"ul\",\n      _vm._l(_vm.clients, function(client, index) {\n        return _c(\"li\", [_vm._v(\"\\n\\t\\t\" + _vm._s(client.nama) + \"\\n\\t\\t\")])\n      }),\n      0\n    )\n  ])\n}\nvar staticRenderFns = []\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/client.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2&":
+/*!***********************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2& ***!
+  \***********************************************************************************************************************************************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return render; });\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return staticRenderFns; });\nvar render = function() {\n  var _vm = this\n  var _h = _vm.$createElement\n  var _c = _vm._self._c || _h\n  return _c(\"div\", [\n    _c(\"h1\", [_vm._v(\"Detail Client\")]),\n    _vm._v(\" \"),\n    _c(\n      \"ul\",\n      _vm._l(_vm.clients, function(client, index) {\n        return _c(\"li\", [_vm._v(\"\\n\\t\\t\" + _vm._s(client.nama) + \"\\n\\t\\t\")])\n      }),\n      0\n    )\n  ])\n}\nvar staticRenderFns = []\nrender._withStripped = true\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/showclient.vue?./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options");
 
 /***/ }),
 
@@ -1458,6 +1482,42 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 
 /***/ }),
 
+/***/ "./resources/assets/vue/taskvue/component/client/showclient.vue":
+/*!**********************************************************************!*\
+  !*** ./resources/assets/vue/taskvue/component/client/showclient.vue ***!
+  \**********************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./showclient.vue?vue&type=template&id=cc58f4a2& */ \"./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2&\");\n/* harmony import */ var _showclient_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./showclient.vue?vue&type=script&lang=js& */ \"./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ \"./node_modules/vue-loader/lib/runtime/componentNormalizer.js\");\n\n\n\n\n\n/* normalize component */\n\nvar component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__[\"default\"])(\n  _showclient_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[\"default\"],\n  _showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n  _showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"],\n  false,\n  null,\n  null,\n  null\n  \n)\n\n/* hot reload */\nif (true) {\n  var api = __webpack_require__(/*! ./node_modules/vue-hot-reload-api/dist/index.js */ \"./node_modules/vue-hot-reload-api/dist/index.js\")\n  api.install(__webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\"))\n  if (api.compatible) {\n    module.hot.accept()\n    if (!module.hot.data) {\n      api.createRecord('cc58f4a2', component.options)\n    } else {\n      api.reload('cc58f4a2', component.options)\n    }\n    module.hot.accept(/*! ./showclient.vue?vue&type=template&id=cc58f4a2& */ \"./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2&\", function(__WEBPACK_OUTDATED_DEPENDENCIES__) { /* harmony import */ _showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./showclient.vue?vue&type=template&id=cc58f4a2& */ \"./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2&\");\n(function () {\n      api.rerender('cc58f4a2', {\n        render: _showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__[\"render\"],\n        staticRenderFns: _showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]\n      })\n    })(__WEBPACK_OUTDATED_DEPENDENCIES__); })\n  }\n}\ncomponent.options.__file = \"resources/assets/vue/taskvue/component/client/showclient.vue\"\n/* harmony default export */ __webpack_exports__[\"default\"] = (component.exports);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/showclient.vue?");
+
+/***/ }),
+
+/***/ "./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=script&lang=js&":
+/*!***********************************************************************************************!*\
+  !*** ./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=script&lang=js& ***!
+  \***********************************************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_showclient_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../../../node_modules/babel-loader/lib!../../../../../../node_modules/vue-loader/lib??vue-loader-options!./showclient.vue?vue&type=script&lang=js& */ \"./node_modules/babel-loader/lib/index.js!./node_modules/vue-loader/lib/index.js?!./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=script&lang=js&\");\n/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__[\"default\"] = (_node_modules_babel_loader_lib_index_js_node_modules_vue_loader_lib_index_js_vue_loader_options_showclient_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__[\"default\"]); \n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/showclient.vue?");
+
+/***/ }),
+
+/***/ "./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2&":
+/*!*****************************************************************************************************!*\
+  !*** ./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2& ***!
+  \*****************************************************************************************************/
+/*! exports provided: render, staticRenderFns */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../../../../node_modules/vue-loader/lib??vue-loader-options!./showclient.vue?vue&type=template&id=cc58f4a2& */ \"./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/assets/vue/taskvue/component/client/showclient.vue?vue&type=template&id=cc58f4a2&\");\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"render\", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__[\"render\"]; });\n\n/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, \"staticRenderFns\", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_showclient_vue_vue_type_template_id_cc58f4a2___WEBPACK_IMPORTED_MODULE_0__[\"staticRenderFns\"]; });\n\n\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/component/client/showclient.vue?");
+
+/***/ }),
+
 /***/ "./resources/assets/vue/taskvue/component/dashboard/dashboard.vue":
 /*!************************************************************************!*\
   !*** ./resources/assets/vue/taskvue/component/dashboard/dashboard.vue ***!
@@ -1646,7 +1706,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _nod
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\");\n/* harmony import */ var vue_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue-router */ \"./node_modules/vue-router/dist/vue-router.esm.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! axios */ \"./node_modules/axios/index.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_2__);\n/* harmony import */ var _component_dashboard_dashboard_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../component/dashboard/dashboard.vue */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue\");\n/* harmony import */ var _component_board_board_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../component/board/board.vue */ \"./resources/assets/vue/taskvue/component/board/board.vue\");\n/* harmony import */ var _component_client_client_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../component/client/client.vue */ \"./resources/assets/vue/taskvue/component/client/client.vue\");\n\n\nvue__WEBPACK_IMPORTED_MODULE_0__[\"default\"].use(vue_router__WEBPACK_IMPORTED_MODULE_1__[\"default\"]);\n\n\n\n\n\n\n\nlet router = new vue_router__WEBPACK_IMPORTED_MODULE_1__[\"default\"]({\n\tmode: 'history',\n\troutes: [{ path: '/dashboard', component: _component_dashboard_dashboard_vue__WEBPACK_IMPORTED_MODULE_3__[\"default\"], name: 'admindashboard' }, { path: '/board', component: _component_board_board_vue__WEBPACK_IMPORTED_MODULE_4__[\"default\"], name: 'adminboard' }, { path: '/client', component: _component_client_client_vue__WEBPACK_IMPORTED_MODULE_5__[\"default\"], name: 'adminclient' }],\n\tscrollBehavior(to, from, savedPosition) {\n\t\treturn { x: 0, y: 0 };\n\t}\n});\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (router);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/router/router.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ \"./node_modules/vue/dist/vue.runtime.esm.js\");\n/* harmony import */ var vue_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue-router */ \"./node_modules/vue-router/dist/vue-router.esm.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! axios */ \"./node_modules/axios/index.js\");\n/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_2__);\n/* harmony import */ var _component_dashboard_dashboard_vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../component/dashboard/dashboard.vue */ \"./resources/assets/vue/taskvue/component/dashboard/dashboard.vue\");\n/* harmony import */ var _component_board_board_vue__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../component/board/board.vue */ \"./resources/assets/vue/taskvue/component/board/board.vue\");\n/* harmony import */ var _component_client_client_vue__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../component/client/client.vue */ \"./resources/assets/vue/taskvue/component/client/client.vue\");\n/* harmony import */ var _component_client_showclient_vue__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../component/client/showclient.vue */ \"./resources/assets/vue/taskvue/component/client/showclient.vue\");\n\n\nvue__WEBPACK_IMPORTED_MODULE_0__[\"default\"].use(vue_router__WEBPACK_IMPORTED_MODULE_1__[\"default\"]);\n\n\n\n\n\n\n\n\nlet router = new vue_router__WEBPACK_IMPORTED_MODULE_1__[\"default\"]({\n\tmode: 'history',\n\troutes: [{ path: '/dashboard', component: _component_dashboard_dashboard_vue__WEBPACK_IMPORTED_MODULE_3__[\"default\"], name: 'dashboard' }, { path: '/board', component: _component_board_board_vue__WEBPACK_IMPORTED_MODULE_4__[\"default\"], name: 'board' }, { path: '/client', component: _component_client_client_vue__WEBPACK_IMPORTED_MODULE_5__[\"default\"], name: 'client' }, { path: '/clientdetail', component: _component_client_showclient_vue__WEBPACK_IMPORTED_MODULE_6__[\"default\"], name: 'clientdetail' }],\n\tscrollBehavior(to, from, savedPosition) {\n\t\treturn { x: 0, y: 0 };\n\t}\n});\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (router);\n\n//# sourceURL=webpack:///./resources/assets/vue/taskvue/router/router.js?");
 
 /***/ })
 

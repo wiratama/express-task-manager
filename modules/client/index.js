@@ -8,6 +8,14 @@ const path = require('path')
 // }
 
 exports.list = function(req, res, next){
+	res.render('index')
+}
+
+exports.showslug = function(req, res, next){
+	res.render('show')
+}
+
+exports.apiList = function(req, res, next){
 	let dataClient = [
 		{
 			'nama': 'client-1',
@@ -25,9 +33,8 @@ exports.list = function(req, res, next){
 	res.json(dataClient)
 }
 
-exports.showslug = function(req, res, next){
+exports.apiShowslug = function(req, res, next){
 	let client = req.params.client
-	// res.render('show', { client: client, title: client})
 	let dataClient = {
 		'client1':{
 			'nama': 'client-1',

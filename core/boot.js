@@ -28,7 +28,7 @@ module.exports = function(parent, options){
 		    switch (key) {
 			    case 'showslug':
 			        method = 'get'
-			        url = '/' + name + 's/:' + name
+			        url = '/' + name + '/:' + name
 			        break
 			    case 'show':
 			        method = 'get'
@@ -36,7 +36,7 @@ module.exports = function(parent, options){
 			        break
 			    case 'list':
 			        method = 'get'
-			        url = '/' + name + 's'
+			        url = '/' + name
 			        break
 			    case 'edit':
 			        method = 'get'
@@ -53,7 +53,17 @@ module.exports = function(parent, options){
 			    case 'index':
 			        method = 'get'
 			        url = '/'
+					break
+				// api
+				case 'apiList':
+			        method = 'get'
+			        url = '/api/' + name
+					break
+				case 'apiShowslug':
+			        method = 'get'
+			        url = '/api/' + name + '/:' + name
 			        break
+				// api
 			    default:
 			    	method = 'get'
 			        url = '/' + name + '/:' + name + '_id'

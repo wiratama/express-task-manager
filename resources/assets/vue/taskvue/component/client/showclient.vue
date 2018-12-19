@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<h1>Client</h1>
+		<h1>Detail Client</h1>
 		<ul>
 			<li v-for="(client, index) of clients">
 			{{client.nama}}
@@ -16,7 +16,6 @@ export default {
 		axios.get(`http://localhost:666/api/client`)
 		.then(response => {
 			this.clients = response.data
-			console.log(this.clients)
 		})
 		.catch(e => {
 			this.errors.push(e)

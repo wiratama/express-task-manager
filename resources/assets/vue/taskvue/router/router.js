@@ -7,19 +7,15 @@ import axios from 'axios';
 import componentDashboard from '../component/dashboard/dashboard.vue';
 import componentBoard from '../component/board/board.vue';
 import componentClient from '../component/client/client.vue';
+import componentClientDetail from '../component/client/showclient.vue';
 
 let router = new VueRouter({
 	mode: 'history',
 	routes: [
-<<<<<<< HEAD
-		{ path: '/dashboard', component: componentDashboard, name: 'admindashboard' },
-		{ path: '/board', component: componentBoard, name: 'adminboard' },
-		{ path: '/client', component: componentClient, name: 'adminclient' },
-=======
-		{ path: '/admin/dashboard', component: componentDashboard, name: 'admindashboard' },
-		{ path: '/admin/board', component: componentBoard, name: 'adminboard' },
-		{ path: '/clients', component: componentClient, name: 'adminclient' },
->>>>>>> 321126e933d153d3f61ef9f3289b843993e173bc
+		{ path: '/dashboard', component: componentDashboard, name: 'dashboard' },
+		{ path: '/board', component: componentBoard, name: 'board' },
+		{ path: '/client', component: componentClient, name: 'client' },
+		{ path: '/clientdetail', component: componentClientDetail, name: 'clientdetail' },
 	],
 	scrollBehavior (to, from, savedPosition) {
 		return { x: 0, y: 0 }
